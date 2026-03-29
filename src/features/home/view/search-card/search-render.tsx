@@ -11,7 +11,7 @@ import { FileErrorBanner, LoadingView, ErrorView, EmptyView } from "./status-vie
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
 export function SearchRender() {
-    const { data, error, loading, searchByFile, searchByUrl, reset } =
+    const { data, error, loading, uploadProgress, searchByFile, searchByUrl, reset } =
         useSearch();
 
     const [mode, setMode] = useState<"upload" | "url">("upload");
@@ -23,36 +23,6 @@ export function SearchRender() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const resultsRef = useRef<HTMLDivElement>(null);
     const dropZoneRef = useRef<any>(null);
-
-    // Auto-scroll to results when they appear
-    useEffect(() => {
-        if ((data || error) && !loading && resultsRef.current) {
-            resultsRef.current.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-            });
-        }
-    }, [data, error, loading]);
-
-    // Global paste handler (Ctrl+V)
-    useEffect(() => {
-        const handlePaste = (e: ClipboardEvent) => {
-            const items = e.clipboardData?.items;
-            if (!items) return;
-
-            for (const item of items) {
-                if (item.type.startsWith("image/")) {
-                    e.preventDefault();
-                    const file = item.getAsFile();
-                    if (file) handleFile(file);
-                    return;
-                }
-            }
-        };
-
-        window.addEventListener("paste", handlePaste);
-        return () => window.removeEventListener("paste", handlePaste);
-    }, []);
 
     const handleFile = useCallback(
         (file: File) => {
@@ -86,6 +56,72 @@ export function SearchRender() {
         },
         [searchByFile, cutBorders],
     );
+
+    // Auto-scroll to results when they appear
+    useEffect(() => {
+        if ((data || error) && !loading && resultsRef.current) {
+            resultsRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+            });
+        }
+    }, [data, error, loading]);
+
+    // Global paste handler (Ctrl+V)
+    useEffect(() => {
+        const handlePaste = (e: ClipboardEvent) => {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+
+            for (const item of items) {
+                if (item.type.startsWith("image/")) {
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    if (file) handleFile(file);
+                    return;
+                }
+            }
+        };
+
+        window.addEventListener("paste", handlePaste);
+        return () => window.removeEventListener("paste", handlePaste);
+    }, [handleFile]);
+
+    // Global drag-and-drop layout
+    useEffect(() => {
+        const handleDragOver = (e: DragEvent) => {
+            e.preventDefault();
+            if (e.dataTransfer?.types.includes("Files")) {
+                setMode("upload");
+                setIsDragging(true);
+            }
+        };
+
+        const handleDragLeave = (e: DragEvent) => {
+            e.preventDefault();
+            // Prevents flicker when dragging over child elements
+            if (e.relatedTarget === null || e.clientX === 0 || e.clientY === 0) {
+                setIsDragging(false);
+            }
+        };
+
+        const handleDropGlobal = (e: DragEvent) => {
+            e.preventDefault();
+            setIsDragging(false);
+            const file = e.dataTransfer?.files?.[0];
+            if (file) handleFile(file);
+        };
+
+        window.addEventListener("dragover", handleDragOver);
+        window.addEventListener("dragleave", handleDragLeave);
+        window.addEventListener("drop", handleDropGlobal);
+
+        return () => {
+            window.removeEventListener("dragover", handleDragOver);
+            window.removeEventListener("dragleave", handleDragLeave);
+            window.removeEventListener("drop", handleDropGlobal);
+        };
+    }, [handleFile]);
 
     const handleDrop = useCallback(
         (e: React.DragEvent) => {
@@ -225,7 +261,7 @@ export function SearchRender() {
                 />
             )}
 
-            {loading && <LoadingView preview={preview} />}
+            {loading && <LoadingView preview={preview} uploadProgress={uploadProgress} />}
 
             {error && !loading && (
                 <ErrorView

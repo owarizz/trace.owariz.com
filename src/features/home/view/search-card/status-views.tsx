@@ -23,7 +23,13 @@ export function FileErrorBanner({
     );
 }
 
-export function LoadingView({ preview }: { preview: string | null }) {
+export function LoadingView({
+    preview,
+    uploadProgress = null,
+}: {
+    preview: string | null;
+    uploadProgress?: number | null;
+}) {
     return (
         <div className="space-y-4">
             <div className="glass-card overflow-hidden animate-fade-in">
@@ -40,13 +46,22 @@ export function LoadingView({ preview }: { preview: string | null }) {
                         <div className="flex items-center gap-2.5">
                             <Loader2 className="size-4 text-(--accent) animate-spin" />
                             <span className="text-sm font-medium text-(--text-secondary)">
-                                Searching across database...
+                                {uploadProgress !== null && uploadProgress < 100
+                                    ? `Uploading image... ${uploadProgress}%`
+                                    : "Searching across database..."}
                             </span>
                         </div>
                     </div>
                 </div>
-                <div className="h-0.5 w-full bg-(--bg-elevated) overflow-hidden">
-                    <div className="h-full w-1/3 bg-(--accent) animate-[shimmer_1.2s_ease-in-out_infinite] rounded-full" />
+                <div className="h-0.5 w-full bg-(--bg-elevated) overflow-hidden relative">
+                    {uploadProgress !== null ? (
+                        <div
+                            className="h-full bg-(--accent) transition-all duration-300 ease-out"
+                            style={{ width: `${uploadProgress}%` }}
+                        />
+                    ) : (
+                        <div className="h-full w-1/3 bg-(--accent) animate-[shimmer_1.2s_ease-in-out_infinite] rounded-full" />
+                    )}
                 </div>
             </div>
             <SearchSkeleton />

@@ -11,6 +11,7 @@ interface SearchState {
     data: SearchResponse | null;
     error: string | null;
     loading: boolean;
+    uploadProgress: number | null; // 0 to 100
 }
 
 export function useSearch() {
@@ -18,12 +19,13 @@ export function useSearch() {
         data: null,
         error: null,
         loading: false,
+        uploadProgress: null,
     });
     const abortRef = useRef<AbortController | null>(null);
 
     const reset = useCallback(() => {
         abortRef.current?.abort();
-        setState({ data: null, error: null, loading: false });
+        setState({ data: null, error: null, loading: false, uploadProgress: null });
     }, []);
 
     const buildParams = (opts: SearchOptions) => {
@@ -39,7 +41,7 @@ export function useSearch() {
             const controller = new AbortController();
             abortRef.current = controller;
 
-            setState({ data: null, error: null, loading: true });
+            setState({ data: null, error: null, loading: true, uploadProgress: 0 });
 
             try {
                 const formData = new FormData();
@@ -53,6 +55,14 @@ export function useSearch() {
                     formData,
                     {
                         signal: controller.signal,
+                        onUploadProgress: (progressEvent) => {
+                            if (progressEvent.total) {
+                                const percentCompleted = Math.round(
+                                    (progressEvent.loaded * 100) / progressEvent.total
+                                );
+                                setState((prev) => ({ ...prev, uploadProgress: percentCompleted }));
+                            }
+                        },
                     },
                 );
 
@@ -61,18 +71,19 @@ export function useSearch() {
                         data: null,
                         error: response.data.error,
                         loading: false,
+                        uploadProgress: null,
                     });
                     return;
                 }
 
-                setState({ data: response.data, error: null, loading: false });
+                setState({ data: response.data, error: null, loading: false, uploadProgress: null });
             } catch (err) {
                 if (!axios.isCancel(err)) {
                     const msg =
                         axios.isAxiosError(err) && err.response?.data?.error
                             ? err.response.data.error
                             : "Failed to search. Please try again.";
-                    setState({ data: null, error: msg, loading: false });
+                    setState({ data: null, error: msg, loading: false, uploadProgress: null });
                 }
             }
         },
@@ -85,7 +96,7 @@ export function useSearch() {
             const controller = new AbortController();
             abortRef.current = controller;
 
-            setState({ data: null, error: null, loading: true });
+            setState({ data: null, error: null, loading: true, uploadProgress: null });
 
             try {
                 const params = buildParams(opts);
@@ -101,18 +112,19 @@ export function useSearch() {
                         data: null,
                         error: response.data.error,
                         loading: false,
+                        uploadProgress: null,
                     });
                     return;
                 }
 
-                setState({ data: response.data, error: null, loading: false });
+                setState({ data: response.data, error: null, loading: false, uploadProgress: null });
             } catch (err) {
                 if (!axios.isCancel(err)) {
                     const msg =
                         axios.isAxiosError(err) && err.response?.data?.error
                             ? err.response.data.error
                             : "Failed to search. Please try again.";
-                    setState({ data: null, error: msg, loading: false });
+                    setState({ data: null, error: msg, loading: false, uploadProgress: null });
                 }
             }
         },

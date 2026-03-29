@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "../assets/globals.css";
 
 import { APP_CONFIG, IBMMono, IBMSans, IBMSansThai } from "@/common";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
     title: APP_CONFIG.title,
@@ -23,7 +25,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
             lang="th"
             className={`${IBMSans.className} ${IBMSansThai.className} ${IBMMono.className} h-full antialiased`}
         >
-            <body className="min-h-full flex flex-col">{children}</body>
+            <body className="min-h-full flex flex-col">
+                {children}
+                <Analytics />
+                <SpeedInsights />
+            </body>
         </html>
     );
 }
