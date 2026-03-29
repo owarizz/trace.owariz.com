@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "../assets/globals.css";
 
 import { APP_CONFIG, IBMMono, IBMSans, IBMSansThai } from "@/common";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
