@@ -1,0 +1,132 @@
+"use client";
+
+import { useState } from "react";
+import {
+    Activity,
+    ChevronDown,
+    ExternalLink,
+    Search,
+    Sparkles,
+} from "lucide-react";
+import { APP_CONFIG } from "@/common";
+import { MeRender } from "./me-card";
+import { SearchRender } from "./search-card";
+
+export function HomeRender() {
+    const [statusOpen, setStatusOpen] = useState(false);
+
+    return (
+        <div className="relative min-h-screen overflow-hidden">
+            {/* Background gradients */}
+            <div className="pointer-events-none fixed inset-0 z-0">
+                <div className="absolute -top-[40%] -left-[20%] h-[80vh] w-[60vw] rounded-full bg-indigo-500/7 blur-[120px]" />
+                <div className="absolute -right-[20%] top-[20%] h-[60vh] w-[50vw] rounded-full bg-violet-500/5 blur-[120px]" />
+                <div className="absolute -bottom-[20%] left-[30%] h-[50vh] w-[40vw] rounded-full bg-fuchsia-500/4 blur-[100px]" />
+            </div>
+
+            {/* Content */}
+            <div className="relative z-10 mx-auto max-w-2xl px-6 py-12 sm:py-16">
+                {/* Compact Hero */}
+                <header className="mb-10 animate-fade-in">
+                    <div className="flex items-start justify-between flex-wrap gap-4">
+                        <div>
+                            {/* Badge */}
+                            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-(--border-default) bg-(--accent-soft) px-3 py-1">
+                                <Sparkles className="size-3 text-(--accent)" />
+                                <span className="text-[11px] font-medium text-(--accent)">
+                                    v{APP_CONFIG.version}
+                                </span>
+                            </div>
+
+                            {/* Title */}
+                            <h1 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">
+                                <span className="inline-block bg-linear-to-r from-white via-indigo-200 to-violet-200 bg-clip-text text-transparent animate-gradient">
+                                    {APP_CONFIG.title}
+                                </span>
+                            </h1>
+
+                            <p className="mt-2 text-sm leading-relaxed text-(--text-secondary) max-w-md">
+                                {APP_CONFIG.description}
+                            </p>
+                        </div>
+
+                        {/* External link — compact */}
+                        <a
+                            href="https://github.com/soruly/trace.moe"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95 mt-1"
+                        >
+                            <ExternalLink className="size-3" />
+                            GitHub
+                        </a>
+                    </div>
+                </header>
+
+                {/* Search Section — Primary Feature */}
+                <section className="mb-10">
+                    <div
+                        className="mb-5 flex items-center gap-2.5 animate-fade-in"
+                        style={{ animationDelay: "0.05s" }}
+                    >
+                        <Search className="size-4 text-(--text-muted)" />
+                        <span className="text-xs font-medium uppercase tracking-[0.15em] text-(--text-muted)">
+                            Scene Search
+                        </span>
+                        <div className="flex-1 h-px bg-(--border-subtle)" />
+                    </div>
+                    <div
+                        className="animate-fade-in-up"
+                        style={{ animationDelay: "0.1s" }}
+                    >
+                        <SearchRender />
+                    </div>
+                </section>
+
+                {/* System Status — Collapsible */}
+                <section
+                    className="animate-fade-in"
+                    style={{ animationDelay: "0.2s" }}
+                >
+                    <button
+                        type="button"
+                        onClick={() => setStatusOpen(!statusOpen)}
+                        className="w-full mb-5 flex items-center gap-2.5 group cursor-pointer"
+                    >
+                        <Activity className="size-4 text-(--text-muted)" />
+                        <span className="text-xs font-medium uppercase tracking-[0.15em] text-(--text-muted)">
+                            System Status
+                        </span>
+                        <div className="flex-1 h-px bg-(--border-subtle)" />
+                        <ChevronDown
+                            className={`size-4 text-(--text-faint) transition-transform duration-200 ${
+                                statusOpen ? "rotate-180" : ""
+                            }`}
+                        />
+                    </button>
+                    <div
+                        className={`grid transition-all duration-300 ease-in-out ${
+                            statusOpen
+                                ? "grid-rows-[1fr] opacity-100"
+                                : "grid-rows-[0fr] opacity-0"
+                        }`}
+                    >
+                        <div className="overflow-hidden">
+                            <MeRender />
+                        </div>
+                    </div>
+                </section>
+
+                {/* Footer */}
+                <footer
+                    className="mt-16 text-center animate-fade-in"
+                    style={{ animationDelay: "0.3s" }}
+                >
+                    <p className="text-xs text-(--text-faint)">
+                        {APP_CONFIG.copyright}
+                    </p>
+                </footer>
+            </div>
+        </div>
+    );
+}
