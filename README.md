@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Trace
 
-## Getting Started
+Anime scene search for screenshots and clips, built on top of the `trace.moe` API.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 App Router
+- React 19
+- Tailwind CSS v4
+- Biome
+
+## Scripts
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun run dev
+bun run build
+bun run start
+bun run lint
+bun run format
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`bun` is the preferred package manager in this repository because `bun.lock` is the primary lockfile.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```text
+src/
+  app/                       Next.js route entrypoints and document metadata
+  assets/                    Global styles and design tokens
+  common/config/             Shared app configuration
+  features/home/
+    controller/              Feature hooks and API-facing state
+    view/                    UI components for the home page
+```
 
-## Learn More
+## Architecture Notes
 
-To learn more about Next.js, take a look at the following resources:
+- `src/app/page.tsx` stays server-rendered and delegates interactivity to feature components.
+- `src/features/home/view/home-render.tsx` is server-first, while search and status interactions live in client components.
+- `src/features/home/controller/` contains browser-side hooks for `trace.moe` requests and local search history.
+- Remote images are rendered through `next/image`, with allowed hosts configured in `next.config.ts`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Conventions
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Keep route files thin and move page behavior into `features/`.
+- Prefer direct imports over wide barrel exports when the module graph is small.
+- Keep browser-only logic inside client components or client hooks.
+- Validate structural changes with `bun run lint` and `bun run build`.

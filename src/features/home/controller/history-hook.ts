@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { SearchResult } from "./interface";
 
 export interface HistoryItem {
@@ -20,46 +20,63 @@ export function useHistory() {
 
     useEffect(() => {
         try {
-            const saved = localStorage.getItem(HISTORY_KEY);
-            if (saved) {
-                setHistory(JSON.parse(saved));
+            const savedHistory = localStorage.getItem(HISTORY_KEY);
+            if (savedHistory) {
+                setHistory(JSON.parse(savedHistory));
             }
-        } catch (err) {
-            console.error("Failed to parse history", err);
+        } catch (error) {
+            console.error("Failed to parse history", error);
         } finally {
             setIsLoaded(true);
         }
     }, []);
 
     const addToHistory = useCallback((bestMatch: SearchResult) => {
-        setHistory((prev) => {
-            const anilistObj = typeof bestMatch.anilist === "object" ? bestMatch.anilist : null;
-            const anilistSafeId = anilistObj ? anilistObj.id : (bestMatch.anilist as number);
-            
+        setHistory((previousHistory) => {
+            const anilistInfo =
+                typeof bestMatch.anilist === "object"
+                    ? bestMatch.anilist
+                    : null;
+            const anilistId = anilistInfo
+                ? anilistInfo.id
+                : (bestMatch.anilist as number);
+
             const newItem: HistoryItem = {
-                id: `${anilistSafeId}-${Date.now()}`,
+                id: `${anilistId}-${Date.now()}`,
                 timestamp: Date.now(),
-                title: anilistObj?.title?.romaji || anilistObj?.title?.native || "Unknown Anime",
-                coverImage: anilistObj?.coverImage?.medium || bestMatch.image,
+                title:
+                    anilistInfo?.title?.romaji ||
+                    anilistInfo?.title?.native ||
+                    "Unknown Anime",
+                coverImage: anilistInfo?.coverImage?.medium || bestMatch.image,
                 similarity: bestMatch.similarity,
                 episode: bestMatch.episode,
-                anilistId: anilistSafeId,
+                anilistId,
             };
 
-            // Deduplicate consecutive identical episode searches
             if (
-                prev.length > 0 &&
-                prev[0].anilistId === newItem.anilistId &&
-                prev[0].episode === newItem.episode
+                previousHistory.length > 0 &&
+                previousHistory[0].anilistId === newItem.anilistId &&
+                previousHistory[0].episode === newItem.episode
             ) {
-                return prev;
+                return previousHistory;
             }
 
-            const updated = [newItem, ...prev].slice(0, MAX_HISTORY);
+            const updatedHistory = [newItem, ...previousHistory].slice(
+                0,
+                MAX_HISTORY,
+            );
+
             try {
-                localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
-            } catch {}
-            return updated;
+                localStorage.setItem(
+                    HISTORY_KEY,
+                    JSON.stringify(updatedHistory),
+                );
+            } catch {
+                return previousHistory;
+            }
+
+            return updatedHistory;
         });
     }, []);
 

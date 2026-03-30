@@ -1,27 +1,5 @@
-import { Loader2, X, AlertCircle, ImageIcon, Search } from "lucide-react";
+import { ImageIcon, Loader2, Search, X } from "lucide-react";
 import { SearchSkeleton } from "./skeleton";
-
-export function FileErrorBanner({
-    error,
-    onClear,
-}: {
-    error: string;
-    onClear: () => void;
-}) {
-    return (
-        <div className="flex items-center gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 animate-fade-in">
-            <AlertCircle className="size-4 text-amber-400 shrink-0" />
-            <p className="text-xs text-amber-300">{error}</p>
-            <button
-                type="button"
-                onClick={onClear}
-                className="ml-auto text-amber-400/60 hover:text-amber-400 transition-colors"
-            >
-                <X className="size-3.5" />
-            </button>
-        </div>
-    );
-}
 
 export function LoadingView({
     preview,
@@ -33,18 +11,21 @@ export function LoadingView({
     return (
         <div className="space-y-4">
             <div className="glass-card overflow-hidden animate-fade-in">
-                <div className="px-5 py-4 flex items-center justify-between">
+                <div className="flex items-center justify-between px-5 py-4">
                     <div className="flex items-center gap-3">
                         {preview && (
-                            <img
-                                src={preview}
-                                alt="Search preview"
-                                referrerPolicy="no-referrer"
-                                className="size-10 rounded-lg object-cover border border-(--border-subtle)"
-                            />
+                            <>
+                                {/* biome-ignore lint/performance/noImgElement: Arbitrary preview URLs include object URLs and user-provided remotes. */}
+                                <img
+                                    src={preview}
+                                    alt="Search preview"
+                                    referrerPolicy="no-referrer"
+                                    className="size-10 rounded-lg border border-(--border-subtle) object-cover"
+                                />
+                            </>
                         )}
                         <div className="flex items-center gap-2.5">
-                            <Loader2 className="size-4 text-(--accent) animate-spin" />
+                            <Loader2 className="size-4 animate-spin text-(--accent)" />
                             <span className="text-sm font-medium text-(--text-secondary)">
                                 {uploadProgress !== null && uploadProgress < 100
                                     ? `Uploading image... ${uploadProgress}%`
@@ -53,14 +34,14 @@ export function LoadingView({
                         </div>
                     </div>
                 </div>
-                <div className="h-0.5 w-full bg-(--bg-elevated) overflow-hidden relative">
+                <div className="relative h-0.5 w-full overflow-hidden bg-(--bg-elevated)">
                     {uploadProgress !== null ? (
                         <div
                             className="h-full bg-(--accent) transition-all duration-300 ease-out"
                             style={{ width: `${uploadProgress}%` }}
                         />
                     ) : (
-                        <div className="h-full w-1/3 bg-(--accent) animate-[shimmer_1.2s_ease-in-out_infinite] rounded-full" />
+                        <div className="h-full w-1/3 animate-[shimmer_1.2s_ease-in-out_infinite] rounded-full bg-(--accent)" />
                     )}
                 </div>
             </div>
@@ -83,16 +64,16 @@ export function ErrorView({
             ref={resultsRef}
             className="glass-card overflow-hidden border-(--error-muted) animate-fade-in"
         >
-            <div className="px-6 py-5 flex items-center justify-between">
+            <div className="flex items-center justify-between px-6 py-5">
                 <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center size-9 rounded-full bg-(--error-muted)">
+                    <div className="flex size-9 items-center justify-center rounded-full bg-(--error-muted)">
                         <X className="size-4 text-(--error)" />
                     </div>
                     <div>
                         <p className="text-sm font-semibold text-(--text-primary)">
                             Search failed
                         </p>
-                        <p className="text-xs text-(--text-muted) font-mono mt-0.5">
+                        <p className="mt-0.5 font-mono text-xs text-(--text-muted)">
                             {error}
                         </p>
                     </div>
@@ -122,11 +103,11 @@ export function EmptyView({
             className="glass-card overflow-hidden animate-fade-in"
         >
             <div className="px-6 py-10 text-center">
-                <ImageIcon className="size-8 mx-auto mb-3 text-(--text-faint)" />
-                <p className="text-sm font-semibold text-(--text-primary) mb-1">
+                <ImageIcon className="mx-auto mb-3 size-8 text-(--text-faint)" />
+                <p className="mb-1 text-sm font-semibold text-(--text-primary)">
                     No matches found
                 </p>
-                <p className="text-xs text-(--text-muted) mb-5">
+                <p className="mb-5 text-xs text-(--text-muted)">
                     Try a different screenshot or a higher quality image
                 </p>
                 <button

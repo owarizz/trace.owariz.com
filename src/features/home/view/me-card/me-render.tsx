@@ -3,10 +3,10 @@
 import {
     Gauge,
     Layers,
-    RefreshCw,
-    Zap,
     type LucideIcon,
+    RefreshCw,
     User,
+    Zap,
 } from "lucide-react";
 import { useMe } from "../../controller";
 import { MeCardError } from "./error";
@@ -54,17 +54,17 @@ const FIELDS: readonly FieldConfig[] = [
 ] as const;
 
 function QuotaBar({ used, total }: { used: number; total: number }) {
-    const pct = total > 0 ? Math.min((used / total) * 100, 100) : 0;
+    const percentUsed = total > 0 ? Math.min((used / total) * 100, 100) : 0;
     const color =
-        pct > 80
+        percentUsed > 80
             ? "from-red-500 to-red-400"
-            : pct > 50
+            : percentUsed > 50
               ? "from-amber-500 to-amber-400"
               : "from-emerald-500 to-emerald-400";
 
     return (
         <div className="mt-5">
-            <div className="flex items-center justify-between mb-2">
+            <div className="mb-2 flex items-center justify-between">
                 <span className="text-[11px] font-medium text-(--text-muted)">
                     Quota Usage
                 </span>
@@ -72,10 +72,10 @@ function QuotaBar({ used, total }: { used: number; total: number }) {
                     {used} / {total}
                 </span>
             </div>
-            <div className="h-1.5 w-full rounded-full bg-(--bg-elevated) overflow-hidden">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-(--bg-elevated)">
                 <div
                     className={`h-full rounded-full bg-linear-to-r ${color} transition-all duration-700 ease-out`}
-                    style={{ width: `${pct}%` }}
+                    style={{ width: `${percentUsed}%` }}
                 />
             </div>
         </div>
@@ -85,22 +85,27 @@ function QuotaBar({ used, total }: { used: number; total: number }) {
 export function MeRender() {
     const { data, error, loading, refetch } = useMe();
 
-    if (loading) return <MeCardSkeleton />;
-    if (error) return <MeCardError message={error} onRetry={refetch} />;
-    if (!data) return null;
+    if (loading) {
+        return <MeCardSkeleton />;
+    }
+
+    if (error) {
+        return <MeCardError message={error} onRetry={refetch} />;
+    }
+
+    if (!data) {
+        return null;
+    }
 
     return (
         <div className="glass-card noise relative overflow-hidden">
-            {/* Card header */}
             <div className="flex items-center justify-between px-6 py-5">
                 <div className="flex items-center gap-3.5">
-                    {/* Avatar */}
                     <div className="relative">
-                        <div className="flex items-center justify-center size-10 rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-white text-xs font-bold shadow-lg shadow-indigo-500/20">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white shadow-lg shadow-indigo-500/20">
                             <User className="size-4" />
                         </div>
-                        {/* Online dot */}
-                        <div className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-(--bg-primary) bg-(--success)" />
+                        <div className="absolute -right-0.5 -bottom-0.5 size-3 rounded-full border-2 border-(--bg-primary) bg-(--success)" />
                     </div>
 
                     <div>
@@ -113,32 +118,28 @@ export function MeRender() {
                     </div>
                 </div>
 
-                {/* Refresh button */}
                 <button
                     type="button"
                     onClick={() => refetch()}
-                    className="flex items-center justify-center size-8 rounded-lg border border-(--border-subtle) bg-(--bg-glass) text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
+                    className="flex size-8 items-center justify-center rounded-lg border border-(--border-subtle) bg-(--bg-glass) text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
                     aria-label="Refresh data"
                 >
                     <RefreshCw className="size-3.5" />
                 </button>
             </div>
 
-            {/* Divider */}
             <div className="h-px bg-(--border-subtle)" />
 
-            {/* Stats Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4">
-                {FIELDS.map(({ label, key, icon: Icon, accent }, i) => (
+                {FIELDS.map(({ label, key, icon: Icon, accent }, index) => (
                     <div
                         key={key}
-                        className={`group relative px-6 py-5 transition-colors hover:bg-white/2 animate-count-up stagger-${i + 1} ${
-                            i < FIELDS.length - 1
+                        className={`group relative px-6 py-5 transition-colors hover:bg-white/2 animate-count-up stagger-${index + 1} ${
+                            index < FIELDS.length - 1
                                 ? "border-r border-(--border-subtle)"
                                 : ""
                         }`}
                     >
-                        {/* Icon */}
                         <div className="mb-3 flex items-center gap-2">
                             <Icon
                                 className={`size-3.5 ${accent ?? "text-(--text-muted)"} transition-transform group-hover:scale-110`}
@@ -148,15 +149,13 @@ export function MeRender() {
                             </span>
                         </div>
 
-                        {/* Value */}
                         <p className="text-xl font-bold tabular-nums text-(--text-primary)">
-                            {data[key] ?? "—"}
+                            {data[key] ?? "-"}
                         </p>
                     </div>
                 ))}
             </div>
 
-            {/* Quota bar */}
             <div className="h-px bg-(--border-subtle)" />
             <div className="px-6 py-4">
                 <QuotaBar

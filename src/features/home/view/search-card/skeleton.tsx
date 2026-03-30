@@ -1,11 +1,17 @@
 export function SearchSkeleton() {
+    const searchSkeletonKeys = [
+        "best-match",
+        "second-match",
+        "third-match",
+    ] as const;
+
     return (
         <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
+            {searchSkeletonKeys.map((key, index) => (
                 <div
-                    key={`search-skeleton-${i}`}
+                    key={key}
                     className="glass-card overflow-hidden animate-fade-in"
-                    style={{ animationDelay: `${i * 0.08}s` }}
+                    style={{ animationDelay: `${index * 0.08}s` }}
                 >
                     <div className="flex flex-col sm:flex-row">
                         {/* Thumbnail skeleton */}

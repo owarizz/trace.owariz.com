@@ -1,4 +1,11 @@
 export function MeCardSkeleton() {
+    const statSkeletonKeys = [
+        "priority",
+        "concurrency",
+        "quota",
+        "quota-used",
+    ] as const;
+
     return (
         <div className="glass-card relative overflow-hidden">
             {/* Header skeleton */}
@@ -18,11 +25,11 @@ export function MeCardSkeleton() {
 
             {/* Stats grid skeleton */}
             <div className="grid grid-cols-2 sm:grid-cols-4">
-                {Array.from({ length: 4 }).map((_, i) => (
+                {statSkeletonKeys.map((key, index) => (
                     <div
-                        key={`skeleton-${i}`}
+                        key={key}
                         className={`px-6 py-5 ${
-                            i < 3 ? "border-r border-(--border-subtle)" : ""
+                            index < 3 ? "border-r border-(--border-subtle)" : ""
                         }`}
                     >
                         <div className="mb-3 flex items-center gap-2">

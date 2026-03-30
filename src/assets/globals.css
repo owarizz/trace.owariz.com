@@ -2,6 +2,12 @@
 
 /* ─── Design Tokens ─── */
 :root {
+    --font-sans:
+        "IBM Plex Sans Thai", "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono:
+        "IBM Plex Mono", "SFMono-Regular", "Cascadia Code", ui-monospace,
+        monospace;
+
     /* Surfaces */
     --bg-primary: #09090b;
     --bg-secondary: #18181b;
@@ -20,7 +26,7 @@
     --text-muted: #71717a;
     --text-faint: #52525b;
 
-    /* Accent — indigo / violet */
+    /* Accent - indigo / violet */
     --accent: #818cf8;
     --accent-muted: rgba(129, 140, 248, 0.15);
     --accent-soft: rgba(129, 140, 248, 0.08);
@@ -51,6 +57,19 @@
 body {
     background: var(--bg-primary);
     color: var(--text-primary);
+    font-family: var(--font-sans);
+}
+
+code,
+kbd,
+pre,
+samp,
+.font-mono {
+    font-family: var(--font-mono);
+}
+
+html {
+    color-scheme: dark;
 }
 
 /* ─── Animations ─── */

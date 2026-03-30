@@ -1,8 +1,8 @@
 export { useMe } from "./hook";
-export { useSearch } from "./search-hook";
 export type {
-    MeResponse,
-    SearchResult,
-    SearchResponse,
     AnilistInfo,
+    MeResponse,
+    SearchResponse,
+    SearchResult,
 } from "./interface";
+export { useSearch } from "./search-hook";

@@ -1,20 +1,30 @@
 "use client";
 
+import { ArrowUp, Link, Scissors, Search, Upload, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Upload, Link, Scissors, X, Search, ArrowUp } from "lucide-react";
+import { toast } from "sonner";
 import { useSearch } from "../../controller";
+import { RecentHistory } from "./recent-history";
 import { ResultList } from "./result-list";
+import { EmptyView, ErrorView, LoadingView } from "./status-views";
 import { UploadZone } from "./upload-zone";
 import { UrlForm } from "./url-form";
-import { LoadingView, ErrorView, EmptyView } from "./status-views";
-import { RecentHistory } from "./recent-history";
-import { toast } from "sonner";
 
-const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
+const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
 export function SearchRender() {
-    const { data, error, loading, uploadProgress, history, historyLoaded, clearHistory, searchByFile, searchByUrl, reset } =
-        useSearch();
+    const {
+        data,
+        error,
+        loading,
+        uploadProgress,
+        history,
+        historyLoaded,
+        clearHistory,
+        searchByFile,
+        searchByUrl,
+        reset,
+    } = useSearch();
 
     const [mode, setMode] = useState<"upload" | "url">("upload");
     const [urlInput, setUrlInput] = useState("");
@@ -23,7 +33,25 @@ export function SearchRender() {
     const [preview, setPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const resultsRef = useRef<HTMLDivElement>(null);
-    const dropZoneRef = useRef<any>(null);
+    const dropZoneRef = useRef<HTMLDivElement>(null);
+    const objectUrlRef = useRef<string | null>(null);
+
+    const clearPreviewUrl = useCallback(() => {
+        if (objectUrlRef.current) {
+            URL.revokeObjectURL(objectUrlRef.current);
+            objectUrlRef.current = null;
+        }
+    }, []);
+
+    const resetLocalUi = useCallback(() => {
+        clearPreviewUrl();
+        setPreview(null);
+        setUrlInput("");
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    }, [clearPreviewUrl]);
 
     const handleFile = useCallback(
         (file: File) => {
@@ -42,21 +70,21 @@ export function SearchRender() {
                 return;
             }
 
-            // Show preview for images
+            clearPreviewUrl();
+
             if (file.type.startsWith("image/")) {
-                const reader = new FileReader();
-                reader.onload = (e) => setPreview(e.target?.result as string);
-                reader.readAsDataURL(file);
+                const objectUrl = URL.createObjectURL(file);
+                objectUrlRef.current = objectUrl;
+                setPreview(objectUrl);
             } else {
                 setPreview(null);
             }
 
             searchByFile(file, { cutBorders, anilistInfo: true });
         },
-        [searchByFile, cutBorders],
+        [clearPreviewUrl, cutBorders, searchByFile],
     );
 
-    // Auto-scroll to results when they appear
     useEffect(() => {
         if ((data || error) && !loading && resultsRef.current) {
             resultsRef.current.scrollIntoView({
@@ -66,17 +94,22 @@ export function SearchRender() {
         }
     }, [data, error, loading]);
 
-    // Global paste handler (Ctrl+V)
     useEffect(() => {
-        const handlePaste = (e: ClipboardEvent) => {
-            const items = e.clipboardData?.items;
-            if (!items) return;
+        const handlePaste = (event: ClipboardEvent) => {
+            const items = event.clipboardData?.items;
+            if (!items) {
+                return;
+            }
 
             for (const item of items) {
                 if (item.type.startsWith("image/")) {
-                    e.preventDefault();
+                    event.preventDefault();
                     const file = item.getAsFile();
-                    if (file) handleFile(file);
+
+                    if (file) {
+                        handleFile(file);
+                    }
+
                     return;
                 }
             }
@@ -86,29 +119,34 @@ export function SearchRender() {
         return () => window.removeEventListener("paste", handlePaste);
     }, [handleFile]);
 
-    // Global drag-and-drop layout
     useEffect(() => {
-        const handleDragOver = (e: DragEvent) => {
-            e.preventDefault();
-            if (e.dataTransfer?.types.includes("Files")) {
+        const handleDragOver = (event: DragEvent) => {
+            event.preventDefault();
+            if (event.dataTransfer?.types.includes("Files")) {
                 setMode("upload");
                 setIsDragging(true);
             }
         };
 
-        const handleDragLeave = (e: DragEvent) => {
-            e.preventDefault();
-            // Prevents flicker when dragging over child elements
-            if (e.relatedTarget === null || e.clientX === 0 || e.clientY === 0) {
+        const handleDragLeave = (event: DragEvent) => {
+            event.preventDefault();
+            if (
+                event.relatedTarget === null ||
+                event.clientX === 0 ||
+                event.clientY === 0
+            ) {
                 setIsDragging(false);
             }
         };
 
-        const handleDropGlobal = (e: DragEvent) => {
-            e.preventDefault();
+        const handleDropGlobal = (event: DragEvent) => {
+            event.preventDefault();
             setIsDragging(false);
-            const file = e.dataTransfer?.files?.[0];
-            if (file) handleFile(file);
+
+            const file = event.dataTransfer?.files?.[0];
+            if (file) {
+                handleFile(file);
+            }
         };
 
         window.addEventListener("dragover", handleDragOver);
@@ -122,47 +160,59 @@ export function SearchRender() {
         };
     }, [handleFile]);
 
+    useEffect(() => {
+        return () => {
+            clearPreviewUrl();
+        };
+    }, [clearPreviewUrl]);
+
     const handleDrop = useCallback(
-        (e: React.DragEvent) => {
-            e.preventDefault();
+        (event: React.DragEvent<HTMLButtonElement>) => {
+            event.preventDefault();
             setIsDragging(false);
-            const file = e.dataTransfer.files[0];
-            if (file) handleFile(file);
+
+            const file = event.dataTransfer.files[0];
+            if (file) {
+                handleFile(file);
+            }
         },
         [handleFile],
     );
 
     const handleUrlSubmit = useCallback(
-        (e: React.FormEvent) => {
-            e.preventDefault();
-            if (!urlInput.trim()) return;
-            setPreview(urlInput.trim());
-            searchByUrl(urlInput.trim(), { cutBorders, anilistInfo: true });
+        (event: React.FormEvent<HTMLFormElement>) => {
+            event.preventDefault();
+            const nextUrl = urlInput.trim();
+
+            if (!nextUrl) {
+                return;
+            }
+
+            clearPreviewUrl();
+            setPreview(nextUrl);
+            searchByUrl(nextUrl, { cutBorders, anilistInfo: true });
         },
-        [searchByUrl, urlInput, cutBorders],
+        [clearPreviewUrl, cutBorders, searchByUrl, urlInput],
     );
 
     const handleClear = useCallback(() => {
         reset();
-        setPreview(null);
-        setUrlInput("");
-        if (fileInputRef.current) fileInputRef.current.value = "";
-    }, [reset]);
+        resetLocalUi();
+    }, [reset, resetLocalUi]);
 
     const handleNewSearch = useCallback(() => {
         reset();
-        setPreview(null);
-        setUrlInput("");
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        setTimeout(() => {
+        resetLocalUi();
+
+        window.setTimeout(() => {
             dropZoneRef.current?.scrollIntoView({
                 behavior: "smooth",
                 block: "center",
             });
         }, 50);
-    }, [reset]);
+    }, [reset, resetLocalUi]);
 
-    const hasResults = data && data.result.length > 0;
+    const hasResults = Boolean(data && data.result.length > 0);
     const showUploadZone = !loading && !hasResults && !error;
 
     return (
@@ -172,15 +222,17 @@ export function SearchRender() {
                 type="file"
                 accept="image/*,video/*"
                 className="hidden"
-                onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleFile(file);
+                onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) {
+                        handleFile(file);
+                    }
                 }}
             />
 
             {showUploadZone && (
-                <div className="flex items-center justify-between flex-wrap gap-3">
-                    <div className="flex items-center gap-1 rounded-xl bg-(--bg-glass) border border-(--border-subtle) p-1">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-1 rounded-xl border border-(--border-subtle) bg-(--bg-glass) p-1">
                         <button
                             type="button"
                             onClick={() => setMode("upload")}
@@ -207,20 +259,20 @@ export function SearchRender() {
                         </button>
                     </div>
 
-                    <label className="inline-flex items-center gap-2 cursor-pointer group">
+                    <label className="group inline-flex cursor-pointer items-center gap-2">
                         <div className="relative">
                             <input
                                 type="checkbox"
                                 checked={cutBorders}
-                                onChange={(e) =>
-                                    setCutBorders(e.target.checked)
+                                onChange={(event) =>
+                                    setCutBorders(event.target.checked)
                                 }
                                 className="peer sr-only"
                             />
-                            <div className="size-4 rounded border border-(--border-default) bg-(--bg-glass) transition-all peer-checked:bg-(--accent) peer-checked:border-(--accent)" />
-                            <Scissors className="absolute inset-0 m-auto size-2.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                            <div className="size-4 rounded border border-(--border-default) bg-(--bg-glass) transition-all peer-checked:border-(--accent) peer-checked:bg-(--accent)" />
+                            <Scissors className="absolute inset-0 m-auto size-2.5 text-white opacity-0 transition-opacity peer-checked:opacity-100" />
                         </div>
-                        <span className="text-xs text-(--text-muted) group-hover:text-(--text-secondary) transition-colors">
+                        <span className="text-xs text-(--text-muted) transition-colors group-hover:text-(--text-secondary)">
                             Cut borders
                         </span>
                     </label>
@@ -228,33 +280,40 @@ export function SearchRender() {
             )}
 
             {showUploadZone && mode === "upload" && (
-                <UploadZone
-                    isDragging={isDragging}
-                    dropZoneRef={dropZoneRef}
-                    onDragOver={(e) => {
-                        e.preventDefault();
-                        setIsDragging(true);
-                    }}
-                    onDragLeave={() => setIsDragging(false)}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                />
+                <div ref={dropZoneRef}>
+                    <UploadZone
+                        isDragging={isDragging}
+                        onDragOver={(event) => {
+                            event.preventDefault();
+                            setIsDragging(true);
+                        }}
+                        onDragLeave={() => setIsDragging(false)}
+                        onDrop={handleDrop}
+                        onClick={() => fileInputRef.current?.click()}
+                    />
+                </div>
             )}
 
             {showUploadZone && mode === "url" && (
-                <UrlForm
-                    urlInput={urlInput}
-                    setUrlInput={setUrlInput}
-                    onSubmit={handleUrlSubmit}
-                    dropZoneRef={dropZoneRef}
-                />
+                <div ref={dropZoneRef}>
+                    <UrlForm
+                        urlInput={urlInput}
+                        setUrlInput={setUrlInput}
+                        onSubmit={handleUrlSubmit}
+                    />
+                </div>
             )}
 
             {showUploadZone && historyLoaded && history.length > 0 && (
                 <RecentHistory history={history} onClear={clearHistory} />
             )}
 
-            {loading && <LoadingView preview={preview} uploadProgress={uploadProgress} />}
+            {loading && (
+                <LoadingView
+                    preview={preview}
+                    uploadProgress={uploadProgress}
+                />
+            )}
 
             {error && !loading && (
                 <ErrorView
@@ -264,25 +323,28 @@ export function SearchRender() {
                 />
             )}
 
-            {hasResults && !loading && (
+            {hasResults && data && !loading && (
                 <div ref={resultsRef} className="space-y-5 animate-fade-in-up">
                     <div className="glass-card overflow-hidden">
-                        <div className="px-5 py-4 flex items-center justify-between flex-wrap gap-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
                             <div className="flex items-center gap-3">
                                 {preview && (
-                                    <img
-                                        src={preview}
-                                        alt="Searched image"
-                                        referrerPolicy="no-referrer"
-                                        className="size-9 rounded-lg object-cover border border-(--border-subtle)"
-                                    />
+                                    <>
+                                        {/* biome-ignore lint/performance/noImgElement: Arbitrary preview URLs include object URLs and user-provided remotes. */}
+                                        <img
+                                            src={preview}
+                                            alt="Search preview"
+                                            referrerPolicy="no-referrer"
+                                            className="size-9 rounded-lg border border-(--border-subtle) object-cover"
+                                        />
+                                    </>
                                 )}
                                 <div>
                                     <span className="text-xs font-semibold text-(--text-primary)">
                                         {data.result.length} result
                                         {data.result.length !== 1 ? "s" : ""}
                                     </span>
-                                    <span className="text-[10px] text-(--text-faint) ml-2 tabular-nums">
+                                    <span className="ml-2 text-[10px] tabular-nums text-(--text-faint)">
                                         {data.frameCount.toLocaleString()}{" "}
                                         frames
                                     </span>
