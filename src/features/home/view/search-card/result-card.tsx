@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
     ExternalLink,
     Play,
@@ -9,7 +9,10 @@ import {
     Star,
     Volume2,
     VolumeX,
+    Copy,
+    Check,
 } from "lucide-react";
+import { toast } from "sonner";
 import type { SearchResult, AnilistInfo } from "../../controller";
 
 function formatTime(seconds: number): string {
@@ -61,9 +64,22 @@ interface ResultCardProps {
 export function ResultCard({ result, index, isBestMatch }: ResultCardProps) {
     const [showVideo, setShowVideo] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
+    const [isCopied, setIsCopied] = useState(false);
     const title = getAnimeTitle(result.anilist);
     const anilistId = getAnilistId(result.anilist);
     const simPct = Math.round(result.similarity * 100);
+
+    const handleCopy = () => {
+        const text = `🎯 Found: ${title}${result.episode ? ` [Ep. ${result.episode}]` : ""}
+Confidence: ${(result.similarity * 100).toFixed(1)}%
+Match it at: https://anilist.co/anime/${anilistId}`;
+
+        navigator.clipboard.writeText(text).then(() => {
+            setIsCopied(true);
+            toast.success("Result copied to clipboard!");
+            setTimeout(() => setIsCopied(false), 2000);
+        });
+    };
 
     return (
         <div
@@ -215,6 +231,18 @@ export function ResultCard({ result, index, isBestMatch }: ResultCardProps) {
                                 Preview
                             </button>
                         )}
+                        <button
+                            type="button"
+                            onClick={handleCopy}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95 ml-auto"
+                        >
+                            {isCopied ? (
+                                <Check className="size-3 text-emerald-500" />
+                            ) : (
+                                <Copy className="size-3" />
+                            )}
+                            {isCopied ? "Copied" : "Share"}
+                        </button>
                     </div>
                 </div>
             </div>

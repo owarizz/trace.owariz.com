@@ -18,6 +18,10 @@ export interface AnilistInfo {
     };
     synonyms: string[];
     isAdult: boolean;
+    coverImage?: {
+        medium?: string;
+        large?: string;
+    };
 }
 
 export interface SearchResult {
@@ -31,6 +35,7 @@ export interface SearchResult {
     similarity: number;
     video: string;
     image: string;
+    anilistInfo?: AnilistInfo;
 }
 
 export interface SearchResponse {

@@ -6,12 +6,14 @@ import { useSearch } from "../../controller";
 import { ResultList } from "./result-list";
 import { UploadZone } from "./upload-zone";
 import { UrlForm } from "./url-form";
-import { FileErrorBanner, LoadingView, ErrorView, EmptyView } from "./status-views";
+import { LoadingView, ErrorView, EmptyView } from "./status-views";
+import { RecentHistory } from "./recent-history";
+import { toast } from "sonner";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
 export function SearchRender() {
-    const { data, error, loading, uploadProgress, searchByFile, searchByUrl, reset } =
+    const { data, error, loading, uploadProgress, history, historyLoaded, clearHistory, searchByFile, searchByUrl, reset } =
         useSearch();
 
     const [mode, setMode] = useState<"upload" | "url">("upload");
@@ -19,25 +21,22 @@ export function SearchRender() {
     const [cutBorders, setCutBorders] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [preview, setPreview] = useState<string | null>(null);
-    const [fileError, setFileError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const resultsRef = useRef<HTMLDivElement>(null);
     const dropZoneRef = useRef<any>(null);
 
     const handleFile = useCallback(
         (file: File) => {
-            setFileError(null);
-
             if (
                 !file.type.startsWith("image/") &&
                 !file.type.startsWith("video/")
             ) {
-                setFileError("Unsupported file type. Use images or videos.");
+                toast.error("Unsupported file type. Use images or videos.");
                 return;
             }
 
             if (file.size > MAX_FILE_SIZE) {
-                setFileError(
+                toast.error(
                     `File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max is 25MB.`,
                 );
                 return;
@@ -138,7 +137,6 @@ export function SearchRender() {
             e.preventDefault();
             if (!urlInput.trim()) return;
             setPreview(urlInput.trim());
-            setFileError(null);
             searchByUrl(urlInput.trim(), { cutBorders, anilistInfo: true });
         },
         [searchByUrl, urlInput, cutBorders],
@@ -148,7 +146,6 @@ export function SearchRender() {
         reset();
         setPreview(null);
         setUrlInput("");
-        setFileError(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
     }, [reset]);
 
@@ -156,7 +153,6 @@ export function SearchRender() {
         reset();
         setPreview(null);
         setUrlInput("");
-        setFileError(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
         setTimeout(() => {
             dropZoneRef.current?.scrollIntoView({
@@ -254,11 +250,8 @@ export function SearchRender() {
                 />
             )}
 
-            {fileError && (
-                <FileErrorBanner
-                    error={fileError}
-                    onClear={() => setFileError(null)}
-                />
+            {showUploadZone && historyLoaded && history.length > 0 && (
+                <RecentHistory history={history} onClear={clearHistory} />
             )}
 
             {loading && <LoadingView preview={preview} uploadProgress={uploadProgress} />}

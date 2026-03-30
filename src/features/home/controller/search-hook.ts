@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useCallback, useRef, useState } from "react";
 import type { SearchResponse } from "./interface";
+import { useHistory } from "./history-hook";
 
 export interface SearchOptions {
     cutBorders?: boolean;
@@ -22,6 +23,7 @@ export function useSearch() {
         uploadProgress: null,
     });
     const abortRef = useRef<AbortController | null>(null);
+    const { history, isLoaded: historyLoaded, addToHistory, clearHistory } = useHistory();
 
     const reset = useCallback(() => {
         abortRef.current?.abort();
@@ -76,6 +78,10 @@ export function useSearch() {
                     return;
                 }
 
+                if (response.data.result && response.data.result.length > 0) {
+                    addToHistory(response.data.result[0]);
+                }
+
                 setState({ data: response.data, error: null, loading: false, uploadProgress: null });
             } catch (err) {
                 if (!axios.isCancel(err)) {
@@ -117,6 +123,10 @@ export function useSearch() {
                     return;
                 }
 
+                if (response.data.result && response.data.result.length > 0) {
+                    addToHistory(response.data.result[0]);
+                }
+
                 setState({ data: response.data, error: null, loading: false, uploadProgress: null });
             } catch (err) {
                 if (!axios.isCancel(err)) {
@@ -136,5 +146,8 @@ export function useSearch() {
         searchByFile,
         searchByUrl,
         reset,
+        history,
+        historyLoaded,
+        clearHistory,
     };
 }
