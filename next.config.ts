@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
                 hostname: "**.anili.st",
                 pathname: "/**",
             },
+            {
+                protocol: "https",
+                hostname: "**.githubusercontent.com",
+                pathname: "/**",
+            },
         ],
     },
 };

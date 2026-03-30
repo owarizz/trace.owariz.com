@@ -1,4 +1,5 @@
 import { Activity, ExternalLink, Search, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { APP_CONFIG } from "@/common/config";
 import { SearchRender } from "./search-card";
 import { StatusPanel } from "./status-panel";
@@ -34,15 +35,23 @@ export function HomeRender() {
                             </p>
                         </div>
 
-                        <a
-                            href="https://github.com/soruly/trace.moe"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
-                        >
-                            <ExternalLink className="size-3" />
-                            GitHub
-                        </a>
+                        <div className="mt-1 flex items-center gap-2">
+                            <Link
+                                href="/updates"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-(--accent)/30 bg-(--accent-soft) px-3 py-1.5 text-[11px] font-semibold text-(--accent) transition-all hover:border-(--accent) hover:brightness-110 active:scale-95"
+                            >
+                                Updates
+                            </Link>
+                            <a
+                                href={APP_CONFIG.github.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
+                            >
+                                <ExternalLink className="size-3" />
+                                GitHub
+                            </a>
+                        </div>
                     </div>
                 </header>
 

@@ -6,6 +6,11 @@ export const APP_CONFIG = {
         "Anime scene search for screenshots and clips powered by trace.moe.",
     url: "https://trace.owariz.com",
     traceApiBaseUrl: "https://api.trace.moe",
+    github: {
+        owner: "owarizz",
+        repository: "trace.owariz.com",
+        url: "https://github.com/owarizz/trace.owariz.com",
+    },
     version,
     authors: [
         {
