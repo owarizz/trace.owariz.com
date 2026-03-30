@@ -33,12 +33,14 @@ export function useHistory() {
 
     const addToHistory = useCallback((bestMatch: SearchResult) => {
         setHistory((prev) => {
-            const anilistSafeId = typeof bestMatch.anilist === "number" ? bestMatch.anilist : bestMatch.anilist.id;
+            const anilistObj = typeof bestMatch.anilist === "object" ? bestMatch.anilist : null;
+            const anilistSafeId = anilistObj ? anilistObj.id : (bestMatch.anilist as number);
+            
             const newItem: HistoryItem = {
                 id: `${anilistSafeId}-${Date.now()}`,
                 timestamp: Date.now(),
-                title: bestMatch.anilistInfo?.title.romaji || bestMatch.anilistInfo?.title.native || "Unknown Anime",
-                coverImage: bestMatch.anilistInfo?.coverImage?.medium || null,
+                title: anilistObj?.title?.romaji || anilistObj?.title?.native || "Unknown Anime",
+                coverImage: anilistObj?.coverImage?.medium || bestMatch.image,
                 similarity: bestMatch.similarity,
                 episode: bestMatch.episode,
                 anilistId: anilistSafeId,
