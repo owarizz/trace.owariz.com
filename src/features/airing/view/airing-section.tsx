@@ -16,7 +16,7 @@ function formatLabel(format: string | null): string {
     if (!format) return "";
     const map: Record<string, string> = {
         TV: "TV",
-        TV_SHORT: "Short",
+        TV_SHORT: "TV Short",
         MOVIE: "Movie",
         OVA: "OVA",
         ONA: "ONA",
@@ -41,53 +41,57 @@ function AiringAnimeCard({ anime, index }: AiringAnimeCardProps) {
             href={`https://anilist.co/anime/${anime.id}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="group shrink-0 w-28 animate-fade-in-up"
+            className="group shrink-0 w-44 animate-fade-in-up"
             style={{ animationDelay: `${index * 0.05}s` }}
         >
-            <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl border border-(--border-subtle) bg-(--bg-elevated) transition-all duration-300 group-hover:-translate-y-1 group-hover:border-(--border-default) group-hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.5)]">
+            {/* Cover image */}
+            <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl border border-(--border-subtle) bg-(--bg-elevated) transition-all duration-300 group-hover:-translate-y-1 group-hover:border-(--border-default) group-hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.6)]">
                 {anime.coverImage.large ? (
                     <Image
                         src={anime.coverImage.large}
                         alt={title}
                         referrerPolicy="no-referrer"
                         fill
-                        sizes="112px"
+                        sizes="176px"
                         loading="lazy"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                 ) : (
                     <div className="flex h-full items-center justify-center">
-                        <Tv className="size-6 text-(--text-faint)" />
+                        <Tv className="size-8 text-(--text-faint)" />
                     </div>
                 )}
 
+                {/* Score badge */}
                 {anime.meanScore && (
-                    <div className="absolute top-1.5 left-1.5 flex items-center gap-0.5 rounded-md bg-black/60 px-1.5 py-0.5 backdrop-blur-sm">
-                        <Star className="size-2.5 fill-amber-400 text-amber-400" />
-                        <span className="text-[9px] font-bold text-white tabular-nums">
+                    <div className="absolute top-2 left-2 flex items-center gap-1 rounded-md bg-black/65 px-2 py-1 backdrop-blur-sm">
+                        <Star className="size-3 fill-amber-400 text-amber-400" />
+                        <span className="text-[11px] font-bold text-white tabular-nums">
                             {(anime.meanScore / 10).toFixed(1)}
                         </span>
                     </div>
                 )}
 
+                {/* Next episode countdown */}
                 {countdown && anime.nextAiringEpisode && (
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent px-2 pt-4 pb-1.5">
-                        <p className="text-[9px] font-medium text-white/90">
-                            EP {anime.nextAiringEpisode.episode}{" "}
-                            <span className="text-white/60">
-                                in {countdown}
-                            </span>
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-2.5 pt-6 pb-2">
+                        <p className="text-xs font-semibold text-white">
+                            EP {anime.nextAiringEpisode.episode}
+                        </p>
+                        <p className="text-[10px] text-white/65">
+                            in {countdown}
                         </p>
                     </div>
                 )}
             </div>
 
-            <div className="mt-2 space-y-0.5 px-0.5">
-                <p className="line-clamp-2 text-[11px] font-semibold leading-tight text-(--text-secondary) transition-colors group-hover:text-(--accent)">
+            {/* Title + meta */}
+            <div className="mt-2.5 space-y-0.5 px-0.5">
+                <p className="line-clamp-2 text-xs font-semibold leading-snug text-(--text-secondary) transition-colors group-hover:text-(--accent)">
                     {title}
                 </p>
                 {anime.format && (
-                    <p className="text-[10px] text-(--text-faint)">
+                    <p className="text-[11px] text-(--text-faint)">
                         {formatLabel(anime.format)}
                         {anime.episodes ? ` · ${anime.episodes} ep` : ""}
                     </p>
@@ -126,14 +130,12 @@ export function AiringSection({ anime }: AiringSectionProps) {
             </div>
 
             <div className="relative">
-                <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide scroll-smooth snap-x snap-mandatory">
+                <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide scroll-smooth">
                     {anime.map((item, i) => (
-                        <div key={item.id} className="snap-start">
-                            <AiringAnimeCard anime={item} index={i} />
-                        </div>
+                        <AiringAnimeCard key={item.id} anime={item} index={i} />
                     ))}
                 </div>
-                <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-(--bg-primary) to-transparent" />
+                <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-(--bg-primary) to-transparent" />
             </div>
         </section>
     );
