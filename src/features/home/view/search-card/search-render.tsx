@@ -12,7 +12,11 @@ import { UrlForm } from "./url-form";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
-export function SearchRender() {
+interface SearchRenderProps {
+    initialUrl?: string;
+}
+
+export function SearchRender({ initialUrl }: SearchRenderProps) {
     const {
         data,
         error,
@@ -31,10 +35,15 @@ export function SearchRender() {
     const [cutBorders, setCutBorders] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [preview, setPreview] = useState<string | null>(null);
+    const [pendingUrlFocus, setPendingUrlFocus] = useState(false);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const urlInputRef = useRef<HTMLInputElement>(null);
     const resultsRef = useRef<HTMLDivElement>(null);
-    const dropZoneRef = useRef<HTMLDivElement>(null);
+    const dropZoneRef = useRef<HTMLButtonElement>(null);
+    const urlModeRef = useRef<HTMLDivElement>(null);
     const objectUrlRef = useRef<string | null>(null);
+    const initialUrlFiredRef = useRef(false);
 
     const clearPreviewUrl = useCallback(() => {
         if (objectUrlRef.current) {
@@ -47,11 +56,27 @@ export function SearchRender() {
         clearPreviewUrl();
         setPreview(null);
         setUrlInput("");
-
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
         }
     }, [clearPreviewUrl]);
+
+    // ── Handlers (defined before useEffects that depend on them) ──────────
+
+    const handleNewSearch = useCallback(() => {
+        reset();
+        resetLocalUi();
+        window.history.replaceState(null, "", window.location.pathname);
+        window.setTimeout(() => {
+            const el = dropZoneRef.current ?? urlModeRef.current;
+            el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 50);
+    }, [reset, resetLocalUi]);
+
+    const handleClear = useCallback(() => {
+        reset();
+        resetLocalUi();
+    }, [reset, resetLocalUi]);
 
     const handleFile = useCallback(
         (file: File) => {
@@ -62,16 +87,13 @@ export function SearchRender() {
                 toast.error("Unsupported file type. Use images or videos.");
                 return;
             }
-
             if (file.size > MAX_FILE_SIZE) {
                 toast.error(
                     `File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max is 25MB.`,
                 );
                 return;
             }
-
             clearPreviewUrl();
-
             if (file.type.startsWith("image/")) {
                 const objectUrl = URL.createObjectURL(file);
                 objectUrlRef.current = objectUrl;
@@ -79,12 +101,62 @@ export function SearchRender() {
             } else {
                 setPreview(null);
             }
-
             searchByFile(file, { cutBorders, anilistInfo: true });
         },
         [clearPreviewUrl, cutBorders, searchByFile],
     );
 
+    const handleDrop = useCallback(
+        (event: React.DragEvent<HTMLButtonElement>) => {
+            event.preventDefault();
+            setIsDragging(false);
+            const file = event.dataTransfer.files[0];
+            if (file) handleFile(file);
+        },
+        [handleFile],
+    );
+
+    const handleUrlSubmit = useCallback(
+        (event: React.FormEvent<HTMLFormElement>) => {
+            event.preventDefault();
+            const nextUrl = urlInput.trim();
+            if (!nextUrl) return;
+            clearPreviewUrl();
+            setPreview(nextUrl);
+            searchByUrl(nextUrl, { cutBorders, anilistInfo: true });
+            // Update browser URL for shareability via ?url=
+            window.history.replaceState(
+                null,
+                "",
+                `?${new URLSearchParams({ url: nextUrl }).toString()}`,
+            );
+        },
+        [clearPreviewUrl, cutBorders, searchByUrl, urlInput],
+    );
+
+    // ── Effects ───────────────────────────────────────────────────────────
+
+    // Auto-search from ?url= query param (shareable links)
+    // biome-ignore lint/correctness/useExhaustiveDependencies: fires once on mount only
+    useEffect(() => {
+        if (initialUrl && !initialUrlFiredRef.current) {
+            initialUrlFiredRef.current = true;
+            setMode("url");
+            setUrlInput(initialUrl);
+            setPreview(initialUrl);
+            searchByUrl(initialUrl, { cutBorders: false, anilistInfo: true });
+        }
+    }, []);
+
+    // Focus URL input after switching to URL mode via keyboard shortcut
+    useEffect(() => {
+        if (pendingUrlFocus && mode === "url") {
+            urlInputRef.current?.focus();
+            setPendingUrlFocus(false);
+        }
+    }, [mode, pendingUrlFocus]);
+
+    // Scroll to results when they appear
     useEffect(() => {
         if ((data || error) && !loading && resultsRef.current) {
             resultsRef.current.scrollIntoView({
@@ -94,31 +166,25 @@ export function SearchRender() {
         }
     }, [data, error, loading]);
 
+    // Global paste handler
     useEffect(() => {
         const handlePaste = (event: ClipboardEvent) => {
             const items = event.clipboardData?.items;
-            if (!items) {
-                return;
-            }
-
+            if (!items) return;
             for (const item of items) {
                 if (item.type.startsWith("image/")) {
                     event.preventDefault();
                     const file = item.getAsFile();
-
-                    if (file) {
-                        handleFile(file);
-                    }
-
+                    if (file) handleFile(file);
                     return;
                 }
             }
         };
-
         window.addEventListener("paste", handlePaste);
         return () => window.removeEventListener("paste", handlePaste);
     }, [handleFile]);
 
+    // Global drag-and-drop handler
     useEffect(() => {
         const handleDragOver = (event: DragEvent) => {
             event.preventDefault();
@@ -127,7 +193,6 @@ export function SearchRender() {
                 setIsDragging(true);
             }
         };
-
         const handleDragLeave = (event: DragEvent) => {
             event.preventDefault();
             if (
@@ -138,21 +203,15 @@ export function SearchRender() {
                 setIsDragging(false);
             }
         };
-
         const handleDropGlobal = (event: DragEvent) => {
             event.preventDefault();
             setIsDragging(false);
-
             const file = event.dataTransfer?.files?.[0];
-            if (file) {
-                handleFile(file);
-            }
+            if (file) handleFile(file);
         };
-
         window.addEventListener("dragover", handleDragOver);
         window.addEventListener("dragleave", handleDragLeave);
         window.addEventListener("drop", handleDropGlobal);
-
         return () => {
             window.removeEventListener("dragover", handleDragOver);
             window.removeEventListener("dragleave", handleDragLeave);
@@ -160,57 +219,37 @@ export function SearchRender() {
         };
     }, [handleFile]);
 
+    // Keyboard shortcuts: "/" to URL search, "Escape" to reset
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            const tag = (event.target as HTMLElement).tagName;
+            const isInput =
+                tag === "INPUT" ||
+                tag === "TEXTAREA" ||
+                (event.target as HTMLElement).isContentEditable;
+
+            if (event.key === "/" && !isInput && !data && !error && !loading) {
+                event.preventDefault();
+                setMode("url");
+                setPendingUrlFocus(true);
+            }
+
+            if (event.key === "Escape" && (data || error)) {
+                handleNewSearch();
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [data, error, loading, handleNewSearch]);
+
+    // Cleanup object URL on unmount
     useEffect(() => {
         return () => {
             clearPreviewUrl();
         };
     }, [clearPreviewUrl]);
 
-    const handleDrop = useCallback(
-        (event: React.DragEvent<HTMLButtonElement>) => {
-            event.preventDefault();
-            setIsDragging(false);
-
-            const file = event.dataTransfer.files[0];
-            if (file) {
-                handleFile(file);
-            }
-        },
-        [handleFile],
-    );
-
-    const handleUrlSubmit = useCallback(
-        (event: React.FormEvent<HTMLFormElement>) => {
-            event.preventDefault();
-            const nextUrl = urlInput.trim();
-
-            if (!nextUrl) {
-                return;
-            }
-
-            clearPreviewUrl();
-            setPreview(nextUrl);
-            searchByUrl(nextUrl, { cutBorders, anilistInfo: true });
-        },
-        [clearPreviewUrl, cutBorders, searchByUrl, urlInput],
-    );
-
-    const handleClear = useCallback(() => {
-        reset();
-        resetLocalUi();
-    }, [reset, resetLocalUi]);
-
-    const handleNewSearch = useCallback(() => {
-        reset();
-        resetLocalUi();
-
-        window.setTimeout(() => {
-            dropZoneRef.current?.scrollIntoView({
-                behavior: "smooth",
-                block: "center",
-            });
-        }, 50);
-    }, [reset, resetLocalUi]);
+    // ── Render ────────────────────────────────────────────────────────────
 
     const hasResults = Boolean(data && data.result.length > 0);
     const showUploadZone = !loading && !hasResults && !error;
@@ -224,9 +263,7 @@ export function SearchRender() {
                 className="hidden"
                 onChange={(event) => {
                     const file = event.target.files?.[0];
-                    if (file) {
-                        handleFile(file);
-                    }
+                    if (file) handleFile(file);
                 }}
             />
 
@@ -280,24 +317,24 @@ export function SearchRender() {
             )}
 
             {showUploadZone && mode === "upload" && (
-                <div ref={dropZoneRef}>
-                    <UploadZone
-                        isDragging={isDragging}
-                        onDragOver={(event) => {
-                            event.preventDefault();
-                            setIsDragging(true);
-                        }}
-                        onDragLeave={() => setIsDragging(false)}
-                        onDrop={handleDrop}
-                        onClick={() => fileInputRef.current?.click()}
-                    />
-                </div>
+                <UploadZone
+                    zoneRef={dropZoneRef}
+                    isDragging={isDragging}
+                    onDragOver={(event) => {
+                        event.preventDefault();
+                        setIsDragging(true);
+                    }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                />
             )}
 
             {showUploadZone && mode === "url" && (
-                <div ref={dropZoneRef}>
+                <div ref={urlModeRef}>
                     <UrlForm
                         urlInput={urlInput}
+                        inputRef={urlInputRef}
                         setUrlInput={setUrlInput}
                         onSubmit={handleUrlSubmit}
                     />
@@ -330,7 +367,7 @@ export function SearchRender() {
                             <div className="flex items-center gap-3">
                                 {preview && (
                                     <>
-                                        {/* biome-ignore lint/performance/noImgElement: Arbitrary preview URLs include object URLs and user-provided remotes. */}
+                                        {/* biome-ignore lint/performance/noImgElement: preview can be object URL or arbitrary remote URL */}
                                         <img
                                             src={preview}
                                             alt="Search preview"

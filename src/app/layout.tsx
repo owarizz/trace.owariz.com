@@ -43,6 +43,12 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
     return (
         <html lang="th" className="h-full antialiased">
+            <head>
+                <link rel="preconnect" href="https://api.trace.moe" />
+                <link rel="preconnect" href="https://graphql.anilist.co" />
+                <link rel="dns-prefetch" href="https://api.trace.moe" />
+                <link rel="dns-prefetch" href="https://graphql.anilist.co" />
+            </head>
             <body className="min-h-full flex flex-col">
                 {children}
                 <Toaster

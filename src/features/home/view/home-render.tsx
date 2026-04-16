@@ -1,10 +1,17 @@
 import { Activity, ExternalLink, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { APP_CONFIG } from "@/common/config";
+import type { AiringAnime } from "@/features/airing/server/anilist";
+import { AiringSection } from "@/features/airing/view/airing-section";
 import { SearchRender } from "./search-card";
 import { StatusPanel } from "./status-panel";
 
-export function HomeRender() {
+interface HomeRenderProps {
+    initialUrl?: string;
+    airingAnime?: AiringAnime[];
+}
+
+export function HomeRender({ initialUrl, airingAnime = [] }: HomeRenderProps) {
     return (
         <div className="relative min-h-screen overflow-hidden">
             <div className="pointer-events-none fixed inset-0 z-0">
@@ -38,6 +45,7 @@ export function HomeRender() {
                         <div className="mt-1 flex items-center gap-2">
                             <Link
                                 href="/updates"
+                                prefetch
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-(--accent)/30 bg-(--accent-soft) px-3 py-1.5 text-[11px] font-semibold text-(--accent) transition-all hover:border-(--accent) hover:brightness-110 active:scale-95"
                             >
                                 Updates
@@ -65,18 +73,27 @@ export function HomeRender() {
                             Scene Search
                         </span>
                         <div className="h-px flex-1 bg-(--border-subtle)" />
+                        <kbd className="hidden rounded border border-(--border-default) bg-(--bg-elevated) px-1.5 py-0.5 text-[10px] font-mono text-(--text-faint) sm:inline-block">
+                            /
+                        </kbd>
                     </div>
                     <div
                         className="animate-fade-in-up"
                         style={{ animationDelay: "0.1s" }}
                     >
-                        <SearchRender />
+                        <SearchRender initialUrl={initialUrl} />
                     </div>
                 </section>
 
+                {airingAnime.length > 0 && (
+                    <section className="mb-10">
+                        <AiringSection anime={airingAnime} />
+                    </section>
+                )}
+
                 <section
                     className="animate-fade-in"
-                    style={{ animationDelay: "0.2s" }}
+                    style={{ animationDelay: "0.3s" }}
                 >
                     <div className="mb-5 flex items-center gap-2.5">
                         <Activity className="size-4 text-(--text-muted)" />
@@ -90,7 +107,7 @@ export function HomeRender() {
 
                 <footer
                     className="mt-16 text-center animate-fade-in"
-                    style={{ animationDelay: "0.3s" }}
+                    style={{ animationDelay: "0.4s" }}
                 >
                     <p className="text-xs text-(--text-faint)">
                         {APP_CONFIG.copyright}

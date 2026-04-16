@@ -196,6 +196,15 @@ html {
     animation-delay: 0.2s;
 }
 
+/* Hide scrollbar while keeping scroll functionality */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
 /* Noise texture overlay */
 .noise::before {
     content: "";

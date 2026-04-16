@@ -1,18 +1,26 @@
 import { Link } from "lucide-react";
+import type { RefObject } from "react";
 
 interface UrlFormProps {
     urlInput: string;
+    inputRef: RefObject<HTMLInputElement | null>;
     setUrlInput: (value: string) => void;
     onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 }
 
-export function UrlForm({ urlInput, setUrlInput, onSubmit }: UrlFormProps) {
+export function UrlForm({
+    urlInput,
+    inputRef,
+    setUrlInput,
+    onSubmit,
+}: UrlFormProps) {
     return (
         <form onSubmit={onSubmit} className="space-y-3">
             <div className="flex gap-2">
                 <div className="relative flex-1">
                     <Link className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-(--text-muted)" />
                     <input
+                        ref={inputRef}
                         type="url"
                         value={urlInput}
                         onChange={(event) => setUrlInput(event.target.value)}

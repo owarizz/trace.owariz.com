@@ -1,7 +1,9 @@
 import { Clipboard, ImageIcon } from "lucide-react";
+import type { RefObject } from "react";
 
 interface UploadZoneProps {
     isDragging: boolean;
+    zoneRef?: RefObject<HTMLButtonElement | null>;
     onDragOver: (event: React.DragEvent<HTMLButtonElement>) => void;
     onDragLeave: () => void;
     onDrop: (event: React.DragEvent<HTMLButtonElement>) => void;
@@ -10,6 +12,7 @@ interface UploadZoneProps {
 
 export function UploadZone({
     isDragging,
+    zoneRef,
     onDragOver,
     onDragLeave,
     onDrop,
@@ -17,6 +20,7 @@ export function UploadZone({
 }: UploadZoneProps) {
     return (
         <button
+            ref={zoneRef}
             type="button"
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
@@ -47,11 +51,21 @@ export function UploadZone({
                     or click to browse - max 25MB
                 </p>
             </div>
-            <div className="mt-1 flex items-center gap-1.5">
-                <Clipboard className="size-3 text-(--text-faint)" />
-                <span className="text-[10px] text-(--text-faint)">
-                    Ctrl+V to paste from clipboard
-                </span>
+            <div className="mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
+                <div className="flex items-center gap-1.5">
+                    <Clipboard className="size-3 text-(--text-faint)" />
+                    <span className="text-[10px] text-(--text-faint)">
+                        Ctrl+V to paste
+                    </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                    <kbd className="rounded border border-(--border-subtle) bg-(--bg-elevated) px-1 py-0.5 text-[9px] font-mono text-(--text-faint)">
+                        /
+                    </kbd>
+                    <span className="text-[10px] text-(--text-faint)">
+                        to search by URL
+                    </span>
+                </div>
             </div>
         </button>
     );
