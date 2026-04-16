@@ -1,354 +1,349 @@
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import {
     ArrowLeft,
     ArrowUpRight,
-    Clock3,
-    GitBranch,
     GitCommitHorizontal,
-    Sparkles,
+    GitFork,
     Star,
     Tag,
+    Zap,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import type { UpdatesFeed } from "../server/github";
+import type { UpdatesCommit, UpdatesFeed } from "../server/github";
 
-function StatCard({
-    icon: Icon,
-    label,
-    value,
-    caption,
-}: {
-    icon: typeof Star;
-    label: string;
-    value: string;
-    caption: string;
-}) {
-    return (
-        <div className="glass-card relative overflow-hidden px-5 py-4">
-            <div className="mb-3 flex items-center gap-2 text-(--text-muted)">
-                <Icon className="size-3.5" />
-                <span className="text-[10px] font-semibold uppercase tracking-[0.18em]">
-                    {label}
-                </span>
-            </div>
-            <p className="text-2xl font-bold text-(--text-primary)">{value}</p>
-            <p className="mt-1 text-xs text-(--text-faint)">{caption}</p>
-        </div>
-    );
+// ── Conventional-commit type parser ──────────────────────────────────────────
+
+const COMMIT_TYPES: Record<string, { label: string; className: string }> = {
+    feat: {
+        label: "feat",
+        className:
+            "bg-(--accent-muted) text-(--accent) border-[rgba(129,140,248,0.25)]",
+    },
+    fix: {
+        label: "fix",
+        className: "bg-rose-400/10 text-rose-300 border-rose-400/20",
+    },
+    refactor: {
+        label: "refactor",
+        className: "bg-amber-400/10 text-amber-300 border-amber-400/20",
+    },
+    perf: {
+        label: "perf",
+        className: "bg-emerald-400/10 text-emerald-300 border-emerald-400/20",
+    },
+    docs: {
+        label: "docs",
+        className: "bg-sky-400/10 text-sky-300 border-sky-400/20",
+    },
+    chore: {
+        label: "chore",
+        className:
+            "bg-(--bg-elevated) text-(--text-faint) border-(--border-subtle)",
+    },
+    style: {
+        label: "style",
+        className: "bg-pink-400/10 text-pink-300 border-pink-400/20",
+    },
+    test: {
+        label: "test",
+        className: "bg-yellow-400/10 text-yellow-300 border-yellow-400/20",
+    },
+    ci: {
+        label: "ci",
+        className: "bg-violet-400/10 text-violet-300 border-violet-400/20",
+    },
+    build: {
+        label: "build",
+        className: "bg-orange-400/10 text-orange-300 border-orange-400/20",
+    },
+    revert: {
+        label: "revert",
+        className: "bg-red-400/10 text-red-300 border-red-400/20",
+    },
+};
+
+function parseCommitType(title: string): {
+    type: (typeof COMMIT_TYPES)[string] | null;
+    rest: string;
+} {
+    const match = title.match(/^(\w+)(?:\([^)]*\))?!?:\s*/);
+    if (!match) return { type: null, rest: title };
+    const key = match[1].toLowerCase();
+    const type = COMMIT_TYPES[key] ?? null;
+    return { type, rest: title.slice(match[0].length) };
 }
 
-function AuthorAvatar({
-    avatarUrl,
-    authorName,
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function Avatar({
+    url,
+    name,
+    size = 20,
 }: {
-    avatarUrl: string | null;
-    authorName: string;
+    url: string | null;
+    name: string;
+    size?: number;
 }) {
-    if (avatarUrl) {
+    if (url) {
         return (
             <Image
-                src={avatarUrl}
-                alt={authorName}
-                width={40}
-                height={40}
-                className="size-10 rounded-full border border-(--border-subtle)"
+                src={url}
+                alt={name}
+                width={size}
+                height={size}
+                className="rounded-full border border-(--border-subtle) shrink-0"
+                style={{ width: size, height: size }}
             />
         );
     }
-
     return (
-        <div className="flex size-10 items-center justify-center rounded-full border border-(--border-subtle) bg-(--bg-elevated) text-xs font-semibold text-(--text-secondary)">
-            {authorName.slice(0, 2).toUpperCase()}
+        <div
+            className="flex shrink-0 items-center justify-center rounded-full border border-(--border-subtle) bg-(--bg-elevated) text-[9px] font-bold text-(--text-faint)"
+            style={{ width: size, height: size }}
+        >
+            {name.slice(0, 1).toUpperCase()}
         </div>
     );
 }
 
-export function UpdatesRender({ feed }: { feed: UpdatesFeed }) {
-    const latestSyncLabel = formatDistanceToNow(new Date(feed.fetchedAt), {
+function CommitRow({ commit }: { commit: UpdatesCommit }) {
+    const { type, rest } = parseCommitType(commit.title);
+    const time = formatDistanceToNow(new Date(commit.date), {
         addSuffix: true,
     });
 
     return (
+        <a
+            href={commit.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-(--bg-glass)"
+        >
+            <Avatar url={commit.authorAvatarUrl} name={commit.authorName} />
+
+            {type ? (
+                <span
+                    className={`shrink-0 rounded border px-1.5 py-0.5 font-mono text-[10px] font-semibold ${type.className}`}
+                >
+                    {type.label}
+                </span>
+            ) : null}
+
+            <span className="min-w-0 flex-1 truncate text-sm text-(--text-secondary) group-hover:text-(--text-primary) transition-colors">
+                {rest}
+            </span>
+
+            <span className="shrink-0 font-mono text-[10px] text-(--text-faint) tabular-nums">
+                {commit.sha}
+            </span>
+
+            <span className="shrink-0 text-[11px] text-(--text-faint) tabular-nums w-20 text-right">
+                {time}
+            </span>
+
+            <ArrowUpRight className="size-3.5 shrink-0 text-(--text-faint) opacity-0 transition-opacity group-hover:opacity-100" />
+        </a>
+    );
+}
+
+// ── Main render ───────────────────────────────────────────────────────────────
+
+export function UpdatesRender({ feed }: { feed: UpdatesFeed }) {
+    const syncLabel = formatDistanceToNow(new Date(feed.fetchedAt), {
+        addSuffix: true,
+    });
+    const lastPush = feed.repo.lastPushAt
+        ? formatDistanceToNow(new Date(feed.repo.lastPushAt), {
+              addSuffix: true,
+          })
+        : null;
+
+    return (
         <div className="relative min-h-screen overflow-hidden">
+            {/* Ambient background */}
             <div className="pointer-events-none fixed inset-0 z-0">
-                <div className="absolute top-[-18%] left-[8%] h-[34rem] w-[34rem] rounded-full bg-cyan-400/7 blur-[120px]" />
-                <div className="absolute top-[12%] right-[-8%] h-[30rem] w-[30rem] rounded-full bg-amber-400/8 blur-[120px]" />
-                <div className="absolute bottom-[-22%] left-[20%] h-[28rem] w-[36rem] rounded-full bg-emerald-400/6 blur-[120px]" />
+                <div className="absolute -top-[30%] -left-[10%] h-[60vh] w-[50vw] rounded-full bg-indigo-500/5 blur-[120px]" />
+                <div className="absolute -right-[15%] top-[10%] h-[50vh] w-[40vw] rounded-full bg-violet-500/4 blur-[120px]" />
             </div>
 
-            <div className="relative z-10 mx-auto max-w-5xl px-6 py-12 sm:py-16">
-                <div className="mb-10 flex flex-wrap items-center justify-between gap-3">
+            <div className="relative z-10 mx-auto max-w-3xl px-6 py-12 sm:py-16">
+                {/* ── Nav ── */}
+                <nav className="mb-10 flex items-center justify-between animate-fade-in">
                     <Link
                         href="/"
-                        className="inline-flex items-center gap-2 rounded-full border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:text-(--text-secondary)"
+                        className="inline-flex items-center gap-1.5 text-sm text-(--text-muted) transition-colors hover:text-(--text-secondary)"
                     >
-                        <ArrowLeft className="size-3" />
-                        Back to search
+                        <ArrowLeft className="size-4" />
+                        Back
                     </Link>
                     <a
                         href={feed.repo.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-full border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:text-(--text-secondary)"
+                        className="inline-flex items-center gap-1.5 text-[11px] text-(--text-faint) transition-colors hover:text-(--text-secondary)"
                     >
-                        <GitCommitHorizontal className="size-3.5" />
-                        Open repository
+                        {feed.repo.fullName}
+                        <ArrowUpRight className="size-3.5" />
                     </a>
-                </div>
+                </nav>
 
-                <header className="mb-10">
-                    <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-300/15 bg-amber-300/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-200">
-                        <Sparkles className="size-3" />
-                        Live from GitHub
+                {/* ── Header ── */}
+                <header
+                    className="mb-8 animate-fade-in"
+                    style={{ animationDelay: "0.05s" }}
+                >
+                    <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-(--accent)/20 bg-(--accent-soft) px-3 py-1">
+                        <Zap className="size-3 text-(--accent)" />
+                        <span className="text-[11px] font-medium text-(--accent)">
+                            Live from GitHub
+                        </span>
+                        <span className="text-[10px] text-(--text-faint)">
+                            · synced {syncLabel}
+                        </span>
                     </div>
-                    <div className="grid gap-8 lg:grid-cols-[1.35fr_0.95fr]">
-                        <div>
-                            <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-(--text-faint)">
-                                Ship log
-                            </p>
-                            <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-(--text-primary) sm:text-5xl">
-                                Recent updates from{" "}
-                                <span className="bg-linear-to-r from-cyan-200 via-white to-amber-200 bg-clip-text text-transparent">
-                                    {feed.repo.fullName}
-                                </span>
-                            </h1>
-                            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-(--text-secondary) sm:text-base">
-                                Fresh commits and release notes pulled from the
-                                repository so this project can publish a clean,
-                                always-current update feed without manual
-                                changelog work.
-                            </p>
-                        </div>
 
-                        <div className="glass-card relative overflow-hidden p-5">
-                            <div className="mb-3 flex items-center justify-between gap-3">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-faint)">
-                                        Repo pulse
-                                    </p>
-                                    <p className="mt-1 text-lg font-semibold text-(--text-primary)">
-                                        {feed.repo.name}
-                                    </p>
-                                </div>
-                                <div className="rounded-full border border-(--border-subtle) px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-(--text-muted)">
-                                    Synced {latestSyncLabel}
-                                </div>
-                            </div>
-                            <p className="text-sm leading-relaxed text-(--text-secondary)">
-                                {feed.repo.description ??
-                                    "Project updates are mirrored from GitHub commits and releases."}
-                            </p>
-                            <div className="mt-5 flex flex-wrap gap-2 text-[11px] text-(--text-muted)">
-                                <span className="rounded-full border border-(--border-subtle) px-2.5 py-1">
-                                    {feed.commits.length} recent commits
+                    <h1 className="text-3xl font-bold tracking-tight text-(--text-primary) sm:text-4xl">
+                        <span className="inline-block bg-linear-to-r from-white via-indigo-200 to-violet-200 bg-clip-text text-transparent animate-gradient">
+                            Updates
+                        </span>
+                    </h1>
+
+                    {/* ── Inline stats ── */}
+                    <div className="mt-4 flex flex-wrap items-center gap-4 text-[13px] text-(--text-muted)">
+                        <span className="flex items-center gap-1.5">
+                            <Star className="size-3.5" />
+                            <strong className="font-semibold text-(--text-secondary)">
+                                {feed.repo.stars.toLocaleString()}
+                            </strong>{" "}
+                            stars
+                        </span>
+                        <span className="text-(--border-default)">·</span>
+                        <span className="flex items-center gap-1.5">
+                            <GitFork className="size-3.5" />
+                            <strong className="font-semibold text-(--text-secondary)">
+                                {feed.repo.forks.toLocaleString()}
+                            </strong>{" "}
+                            forks
+                        </span>
+                        <span className="text-(--border-default)">·</span>
+                        <span>
+                            <strong className="font-semibold text-(--text-secondary)">
+                                {feed.repo.issues}
+                            </strong>{" "}
+                            open issues
+                        </span>
+                        {lastPush && (
+                            <>
+                                <span className="text-(--border-default)">
+                                    ·
                                 </span>
-                                <span className="rounded-full border border-(--border-subtle) px-2.5 py-1">
-                                    {feed.repo.issues} open issues
-                                </span>
-                                {feed.latestRelease ? (
-                                    <span className="rounded-full border border-emerald-400/20 bg-emerald-400/8 px-2.5 py-1 text-emerald-300">
-                                        Latest release{" "}
-                                        {feed.latestRelease.tagName}
-                                    </span>
-                                ) : null}
-                            </div>
-                        </div>
+                                <span>pushed {lastPush}</span>
+                            </>
+                        )}
                     </div>
                 </header>
 
-                <section className="mb-8 grid gap-4 md:grid-cols-3">
-                    <StatCard
-                        icon={Star}
-                        label="Stars"
-                        value={feed.repo.stars.toLocaleString()}
-                        caption="Signals how many people are tracking the project."
-                    />
-                    <StatCard
-                        icon={GitBranch}
-                        label="Forks"
-                        value={feed.repo.forks.toLocaleString()}
-                        caption="Useful proxy for experimentation and external contributions."
-                    />
-                    <StatCard
-                        icon={Clock3}
-                        label="Last Push"
-                        value={
-                            feed.repo.lastPushAt
-                                ? formatDistanceToNow(
-                                      new Date(feed.repo.lastPushAt),
-                                      {
-                                          addSuffix: true,
-                                      },
-                                  )
-                                : "Unknown"
-                        }
-                        caption="Repository activity straight from the default branch."
-                    />
-                </section>
-
-                {feed.error ? (
-                    <div className="mb-8 rounded-2xl border border-amber-300/15 bg-amber-300/8 px-4 py-3 text-sm text-amber-100">
+                {/* ── Error banner ── */}
+                {feed.error && (
+                    <div className="mb-6 rounded-xl border border-amber-300/15 bg-amber-300/6 px-4 py-3 text-xs text-amber-200 animate-fade-in">
                         {feed.error}
                     </div>
-                ) : null}
+                )}
 
-                {feed.latestRelease ? (
-                    <section className="mb-8">
-                        <div className="mb-4 flex items-center gap-2.5">
-                            <Tag className="size-4 text-(--text-muted)" />
+                {/* ── Latest release ── */}
+                {feed.latestRelease && (
+                    <section
+                        className="mb-8 animate-fade-in"
+                        style={{ animationDelay: "0.1s" }}
+                    >
+                        <div className="mb-3 flex items-center gap-2.5">
+                            <Tag className="size-3.5 text-(--text-muted)" />
                             <span className="text-xs font-medium uppercase tracking-[0.15em] text-(--text-muted)">
                                 Latest release
                             </span>
                             <div className="h-px flex-1 bg-(--border-subtle)" />
                         </div>
 
-                        <article className="glass-card overflow-hidden p-5">
-                            <div className="flex flex-wrap items-start justify-between gap-4">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
-                                        {feed.latestRelease.isPrerelease
-                                            ? "Prerelease"
-                                            : "Stable release"}
-                                    </p>
-                                    <h2 className="mt-2 text-2xl font-semibold text-(--text-primary)">
-                                        {feed.latestRelease.name}
-                                    </h2>
-                                    <p className="mt-2 text-sm text-(--text-secondary)">
-                                        Published{" "}
-                                        {format(
-                                            new Date(
-                                                feed.latestRelease.publishedAt,
-                                            ),
-                                            "PPP",
+                        <a
+                            href={feed.latestRelease.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group block rounded-xl border border-(--border-subtle) bg-(--bg-glass) px-5 py-4 transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover)"
+                        >
+                            <div className="flex items-start justify-between gap-4">
+                                <div className="min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="rounded-md border border-emerald-400/25 bg-emerald-400/10 px-2 py-0.5 font-mono text-xs font-semibold text-emerald-300">
+                                            {feed.latestRelease.tagName}
+                                        </span>
+                                        {feed.latestRelease.isPrerelease && (
+                                            <span className="rounded-md border border-amber-400/20 bg-amber-400/8 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
+                                                pre-release
+                                            </span>
                                         )}
-                                    </p>
+                                        <span className="text-sm font-semibold text-(--text-primary)">
+                                            {feed.latestRelease.name}
+                                        </span>
+                                    </div>
+                                    {feed.latestRelease.body && (
+                                        <p className="mt-2 text-sm leading-relaxed text-(--text-muted) line-clamp-2">
+                                            {feed.latestRelease.body}
+                                        </p>
+                                    )}
                                 </div>
-                                <a
-                                    href={feed.latestRelease.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 rounded-full border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-xs font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:text-(--text-secondary)"
-                                >
-                                    View release
-                                    <ArrowUpRight className="size-3.5" />
-                                </a>
+                                <ArrowUpRight className="size-4 shrink-0 text-(--text-faint) transition-colors group-hover:text-(--text-secondary)" />
                             </div>
-                            {feed.latestRelease.body ? (
-                                <p className="mt-4 max-w-3xl text-sm leading-relaxed text-(--text-secondary)">
-                                    {feed.latestRelease.body}
-                                </p>
-                            ) : null}
-                        </article>
+                        </a>
                     </section>
-                ) : null}
+                )}
 
-                <section>
-                    <div className="mb-4 flex items-center gap-2.5">
-                        <GitBranch className="size-4 text-(--text-muted)" />
+                {/* ── Commits ── */}
+                <section
+                    className="animate-fade-in"
+                    style={{ animationDelay: "0.15s" }}
+                >
+                    <div className="mb-1 flex items-center gap-2.5">
+                        <GitCommitHorizontal className="size-3.5 text-(--text-muted)" />
                         <span className="text-xs font-medium uppercase tracking-[0.15em] text-(--text-muted)">
                             Recent commits
                         </span>
                         <div className="h-px flex-1 bg-(--border-subtle)" />
+                        <span className="text-[10px] text-(--text-faint)">
+                            {feed.commits.length}
+                        </span>
                     </div>
 
                     {feed.commits.length > 0 ? (
-                        <div className="space-y-4">
-                            {feed.commits.map((commit, index) => (
-                                <article
+                        <div className="mt-1 overflow-hidden rounded-xl border border-(--border-subtle)">
+                            {feed.commits.map((commit, i) => (
+                                <div
                                     key={commit.id}
-                                    className="glass-card relative overflow-hidden p-5"
+                                    className={
+                                        i < feed.commits.length - 1
+                                            ? "border-b border-(--border-subtle)"
+                                            : ""
+                                    }
                                 >
-                                    <div className="absolute top-0 left-0 h-full w-px bg-linear-to-b from-cyan-300/80 via-amber-300/40 to-transparent" />
-                                    <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                                        <div className="flex gap-4">
-                                            <div className="relative">
-                                                <AuthorAvatar
-                                                    avatarUrl={
-                                                        commit.authorAvatarUrl
-                                                    }
-                                                    authorName={
-                                                        commit.authorName
-                                                    }
-                                                />
-                                                <div className="absolute -right-1 -bottom-1 flex size-4 items-center justify-center rounded-full border border-(--bg-primary) bg-(--bg-secondary) text-[9px] font-bold text-(--text-faint)">
-                                                    {index + 1}
-                                                </div>
-                                            </div>
-
-                                            <div className="min-w-0">
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <span className="rounded-full border border-(--border-subtle) px-2 py-0.5 font-mono text-[10px] font-semibold tracking-[0.16em] text-cyan-200">
-                                                        {commit.sha}
-                                                    </span>
-                                                    <span className="text-[11px] text-(--text-faint)">
-                                                        {formatDistanceToNow(
-                                                            new Date(
-                                                                commit.date,
-                                                            ),
-                                                            {
-                                                                addSuffix: true,
-                                                            },
-                                                        )}
-                                                    </span>
-                                                </div>
-                                                <h3 className="mt-3 text-lg font-semibold text-(--text-primary)">
-                                                    {commit.title}
-                                                </h3>
-                                                {commit.message ? (
-                                                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-(--text-secondary)">
-                                                        {commit.message}
-                                                    </p>
-                                                ) : null}
-                                                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-(--text-muted)">
-                                                    <span>
-                                                        by {commit.authorName}
-                                                    </span>
-                                                    <span>
-                                                        {format(
-                                                            new Date(
-                                                                commit.date,
-                                                            ),
-                                                            "PPP p",
-                                                        )}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex shrink-0 flex-wrap gap-2">
-                                            {commit.authorUrl ? (
-                                                <a
-                                                    href={commit.authorUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="inline-flex items-center gap-2 rounded-full border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-xs font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:text-(--text-secondary)"
-                                                >
-                                                    Author
-                                                    <ArrowUpRight className="size-3.5" />
-                                                </a>
-                                            ) : null}
-                                            <a
-                                                href={commit.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/8 px-3 py-1.5 text-xs font-medium text-cyan-100 transition-all hover:border-cyan-200 hover:brightness-110"
-                                            >
-                                                View commit
-                                                <ArrowUpRight className="size-3.5" />
-                                            </a>
-                                        </div>
-                                    </div>
-                                </article>
+                                    <CommitRow commit={commit} />
+                                </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="glass-card p-6 text-sm text-(--text-secondary)">
-                            No commits available right now. You can still open
-                            the repository directly from GitHub.
-                        </div>
+                        <p className="mt-4 text-sm text-(--text-faint)">
+                            No commits available.
+                        </p>
                     )}
                 </section>
+
+                <footer
+                    className="mt-16 text-center animate-fade-in"
+                    style={{ animationDelay: "0.2s" }}
+                >
+                    <p className="text-xs text-(--text-faint)">
+                        Data refreshes every 15 minutes via ISR.
+                    </p>
+                </footer>
             </div>
         </div>
     );
