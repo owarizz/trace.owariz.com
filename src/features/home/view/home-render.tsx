@@ -1,4 +1,4 @@
-import { Activity, ExternalLink, Search, Sparkles } from "lucide-react";
+import { ExternalLink, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { APP_CONFIG } from "@/common/config/site";
 import type {
@@ -9,7 +9,6 @@ import { AiringSection } from "@/features/airing/view/airing-section";
 import { BookmarkBar } from "./bookmark-bar";
 import { SavedScenesSection } from "./saved-scenes-section";
 import { SearchRender } from "./search-card";
-import { StatusPanel } from "./status-panel";
 
 interface HomeRenderProps {
     initialUrl?: string;
@@ -61,6 +60,13 @@ export function HomeRender({
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
                             >
                                 Anime Atlas
+                            </Link>
+                            <Link
+                                href="/profile"
+                                prefetch
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
+                            >
+                                Profile
                             </Link>
                             <Link
                                 href="/updates"
@@ -117,23 +123,9 @@ export function HomeRender({
                     <SavedScenesSection />
                 </div>
 
-                <section
-                    className="animate-fade-in"
-                    style={{ animationDelay: "0.3s" }}
-                >
-                    <div className="mb-5 flex items-center gap-2.5">
-                        <Activity className="size-4 text-(--text-muted)" />
-                        <span className="text-xs font-medium uppercase tracking-[0.15em] text-(--text-muted)">
-                            System Status
-                        </span>
-                        <div className="h-px flex-1 bg-(--border-subtle)" />
-                    </div>
-                    <StatusPanel />
-                </section>
-
                 <footer
                     className="mt-16 text-center animate-fade-in"
-                    style={{ animationDelay: "0.4s" }}
+                    style={{ animationDelay: "0.3s" }}
                 >
                     <p className="text-xs text-(--text-faint)">
                         {APP_CONFIG.copyright}

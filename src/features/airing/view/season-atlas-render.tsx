@@ -145,7 +145,7 @@ export function SeasonAtlasRender({ archive, feed }: SeasonAtlasRenderProps) {
                         </span>
                     </div>
 
-                    <div className="max-h-[272px] overflow-y-auto overflow-x-hidden rounded-xl border border-(--border-subtle)">
+                    <div className="scrollbar-hide max-h-[272px] overflow-y-auto overflow-x-hidden rounded-xl border border-(--border-subtle)">
                         {archive.map((entry, i) => (
                             <div
                                 key={entry.year}
