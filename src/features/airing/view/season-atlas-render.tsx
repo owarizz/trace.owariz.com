@@ -1,6 +1,6 @@
 import {
-    ArrowLeft,
     ArrowRight,
+    ArrowLeft,
     ArrowUpRight,
     Layers3,
     Sparkles,
@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { APP_CONFIG } from "@/common/config/site";
 import {
     buildSeasonHref,
     type SeasonArchiveYear,
@@ -51,27 +50,7 @@ export function SeasonAtlasRender({ archive, feed }: SeasonAtlasRenderProps) {
                 <div className="absolute -right-[15%] top-[10%] h-[50vh] w-[40vw] rounded-full bg-violet-500/4 blur-[120px]" />
             </div>
 
-            <div className="relative z-10 mx-auto max-w-3xl px-6 py-12 sm:py-16">
-                {/* ── Nav ── */}
-                <nav className="mb-10 flex items-center justify-between animate-fade-in">
-                    <Link
-                        href="/"
-                        prefetch
-                        className="inline-flex items-center gap-1.5 text-sm text-(--text-muted) transition-colors hover:text-(--text-secondary)"
-                    >
-                        <ArrowLeft className="size-4" />
-                        Back
-                    </Link>
-                    <a
-                        href={APP_CONFIG.github.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-[11px] text-(--text-faint) transition-colors hover:text-(--text-secondary)"
-                    >
-                        {APP_CONFIG.github.repository}
-                        <ArrowUpRight className="size-3.5" />
-                    </a>
-                </nav>
+            <div className="relative z-10 mx-auto max-w-3xl px-6 pb-28 pt-12 sm:pt-16">
 
                 {/* ── Header ── */}
                 <header

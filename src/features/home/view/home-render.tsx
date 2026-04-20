@@ -1,12 +1,10 @@
 import { ExternalLink, Search, Sparkles } from "lucide-react";
-import Link from "next/link";
 import { APP_CONFIG } from "@/common/config/site";
 import type {
     SeasonalAnime,
     SeasonSelection,
 } from "@/features/airing/shared/seasonal";
 import { AiringSection } from "@/features/airing/view/airing-section";
-import { BookmarkBar } from "./bookmark-bar";
 import { SavedScenesSection } from "./saved-scenes-section";
 import { SearchRender } from "./search-card";
 
@@ -31,9 +29,9 @@ export function HomeRender({
                 <div className="absolute -bottom-[20%] left-[30%] h-[50vh] w-[40vw] rounded-full bg-fuchsia-500/4 blur-[100px]" />
             </div>
 
-            <div className="relative z-10 mx-auto max-w-2xl px-6 py-12 sm:py-16">
+            <div className="relative z-10 mx-auto max-w-2xl px-6 pb-28 pt-12 sm:pt-16">
                 <header className="mb-10 animate-fade-in">
-                    <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="flex items-start justify-between gap-4">
                         <div>
                             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-(--border-default) bg-(--accent-soft) px-3 py-1">
                                 <Sparkles className="size-3 text-(--accent)" />
@@ -53,39 +51,15 @@ export function HomeRender({
                             </p>
                         </div>
 
-                        <div className="mt-1 flex items-center gap-2">
-                            <Link
-                                href="/anime"
-                                prefetch
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
-                            >
-                                Anime Atlas
-                            </Link>
-                            <Link
-                                href="/profile"
-                                prefetch
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
-                            >
-                                Profile
-                            </Link>
-                            <Link
-                                href="/updates"
-                                prefetch
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-(--accent)/30 bg-(--accent-soft) px-3 py-1.5 text-[11px] font-semibold text-(--accent) transition-all hover:border-(--accent) hover:brightness-110 active:scale-95"
-                            >
-                                Updates
-                            </Link>
-                            <BookmarkBar />
-                            <a
-                                href={APP_CONFIG.github.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
-                            >
-                                <ExternalLink className="size-3" />
-                                GitHub
-                            </a>
-                        </div>
+                        <a
+                            href={APP_CONFIG.github.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-1 shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
+                        >
+                            <ExternalLink className="size-3" />
+                            GitHub
+                        </a>
                     </div>
                 </header>
 

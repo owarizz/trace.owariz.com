@@ -1,6 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
 import {
-    ArrowLeft,
     ArrowUpRight,
     GitCommitHorizontal,
     GitFork,
@@ -9,7 +8,6 @@ import {
     Zap,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import type { UpdatesCommit, UpdatesFeed } from "../server/github";
 
 // ── Conventional-commit type parser ──────────────────────────────────────────
@@ -168,16 +166,9 @@ export function UpdatesRender({ feed }: { feed: UpdatesFeed }) {
                 <div className="absolute -right-[15%] top-[10%] h-[50vh] w-[40vw] rounded-full bg-violet-500/4 blur-[120px]" />
             </div>
 
-            <div className="relative z-10 mx-auto max-w-3xl px-6 py-12 sm:py-16">
-                {/* ── Nav ── */}
-                <nav className="mb-10 flex items-center justify-between animate-fade-in">
-                    <Link
-                        href="/"
-                        className="inline-flex items-center gap-1.5 text-sm text-(--text-muted) transition-colors hover:text-(--text-secondary)"
-                    >
-                        <ArrowLeft className="size-4" />
-                        Back
-                    </Link>
+            <div className="relative z-10 mx-auto max-w-3xl px-6 pb-28 pt-12 sm:pt-16">
+                {/* ── Repo link ── */}
+                <div className="mb-10 flex justify-end animate-fade-in">
                     <a
                         href={feed.repo.url}
                         target="_blank"
@@ -187,7 +178,7 @@ export function UpdatesRender({ feed }: { feed: UpdatesFeed }) {
                         {feed.repo.fullName}
                         <ArrowUpRight className="size-3.5" />
                     </a>
-                </nav>
+                </div>
 
                 {/* ── Header ── */}
                 <header

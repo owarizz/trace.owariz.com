@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
 import { APP_CONFIG } from "@/common/config/site";
+import { BottomNav } from "@/features/home/view/bottom-nav";
 
 export const viewport: Viewport = {
     themeColor: [
@@ -51,9 +52,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
             </head>
             <body className="min-h-full flex flex-col">
                 {children}
+                <BottomNav />
                 <Toaster
                     theme="dark"
                     position="bottom-center"
+                    offset="5.5rem"
                     toastOptions={{
                         className:
                             "border-(--border-subtle) bg-(--bg-elevated) text-(--text-primary)",
