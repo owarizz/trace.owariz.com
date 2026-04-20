@@ -129,6 +129,8 @@ function AiringAnimeCard({
                         fill
                         sizes="192px"
                         loading="lazy"
+                        unoptimized
+                        referrerPolicy="no-referrer"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                 ) : (
