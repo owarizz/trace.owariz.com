@@ -1,6 +1,6 @@
 "use client";
 
-import { Bookmark, Clock, Info, Trash2, X } from "lucide-react";
+import { Bookmark, Clock, ImageIcon, Info, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -10,7 +10,11 @@ import {
     useBookmarkStore,
 } from "../controller/bookmark-store";
 
-function formatTime(seconds: number) {
+function formatTime(seconds?: number | null) {
+    if (typeof seconds !== "number" || Number.isNaN(seconds)) {
+        return "-";
+    }
+
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
     return `${m}:${s.toString().padStart(2, "0")}`;
@@ -46,14 +50,20 @@ function BookmarkCard({
     return (
         <div className="glass-card noise group relative flex gap-3 overflow-hidden p-3">
             <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-lg border border-(--border-subtle) bg-(--bg-elevated)">
-                <Image
-                    src={`${item.image}?size=s`}
-                    alt={item.title}
-                    fill
-                    sizes="44px"
-                    className="object-cover"
-                    referrerPolicy="no-referrer"
-                />
+                {item.image ? (
+                    <Image
+                        src={`${item.image}?size=s`}
+                        alt={item.title}
+                        fill
+                        sizes="44px"
+                        className="object-cover"
+                        referrerPolicy="no-referrer"
+                    />
+                ) : (
+                    <div className="flex h-full items-center justify-center">
+                        <ImageIcon className="size-4 text-(--text-faint)" />
+                    </div>
+                )}
                 <div
                     className={`absolute top-1 left-1 rounded px-1 py-0.5 text-[9px] font-bold tabular-nums backdrop-blur-md ${bg} ${text}`}
                 >

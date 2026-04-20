@@ -45,7 +45,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <html lang="th" className="h-full antialiased">
             <head>
                 <link rel="preconnect" href="https://api.trace.moe" />
+                <link rel="preconnect" href="https://api.jikan.moe" />
                 <link rel="dns-prefetch" href="https://api.trace.moe" />
+                <link rel="dns-prefetch" href="https://api.jikan.moe" />
             </head>
             <body className="min-h-full flex flex-col">
                 {children}

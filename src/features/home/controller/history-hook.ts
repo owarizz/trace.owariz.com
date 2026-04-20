@@ -3,6 +3,8 @@ import {
     type AnimeSceneSnapshot,
     createSceneSnapshot,
     getAnimeCoverImage,
+    normalizeAnimeSceneSnapshot,
+    parseFiniteNumber,
 } from "./anime-scene";
 import type { SearchResult } from "./interface";
 
@@ -15,6 +17,51 @@ export interface HistoryItem extends AnimeSceneSnapshot {
 const HISTORY_KEY = "trace_history";
 const MAX_HISTORY = 5;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
+
+function normalizeHistoryItem(value: unknown): HistoryItem | null {
+    if (!isRecord(value)) {
+        return null;
+    }
+
+    const snapshot = normalizeAnimeSceneSnapshot(value);
+
+    if (!snapshot) {
+        return null;
+    }
+
+    const timestamp = parseFiniteNumber(value.timestamp) ?? Date.now();
+    const id =
+        typeof value.id === "string" && value.id.trim().length > 0
+            ? value.id
+            : `${snapshot.anilistId}-${timestamp}`;
+    const coverImage =
+        typeof value.coverImage === "string" &&
+        value.coverImage.trim().length > 0
+            ? value.coverImage
+            : snapshot.image;
+
+    return {
+        id,
+        timestamp,
+        coverImage,
+        ...snapshot,
+    };
+}
+
+function normalizeHistory(value: unknown): HistoryItem[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value
+        .map(normalizeHistoryItem)
+        .filter((item): item is HistoryItem => item !== null)
+        .slice(0, MAX_HISTORY);
+}
+
 export function useHistory() {
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
@@ -23,7 +70,15 @@ export function useHistory() {
         try {
             const savedHistory = localStorage.getItem(HISTORY_KEY);
             if (savedHistory) {
-                setHistory(JSON.parse(savedHistory));
+                const normalizedHistory = normalizeHistory(
+                    JSON.parse(savedHistory),
+                );
+
+                setHistory(normalizedHistory);
+                localStorage.setItem(
+                    HISTORY_KEY,
+                    JSON.stringify(normalizedHistory),
+                );
             }
         } catch (error) {
             console.error("Failed to parse history", error);

@@ -48,6 +48,11 @@ const nextConfig: NextConfig = {
                 hostname: "**.githubusercontent.com",
                 pathname: "/**",
             },
+            {
+                protocol: "https",
+                hostname: "**.myanimelist.net",
+                pathname: "/**",
+            },
         ],
     },
 };

@@ -1,6 +1,11 @@
 import { Activity, ExternalLink, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { APP_CONFIG } from "@/common/config/site";
+import type {
+    SeasonalAnime,
+    SeasonSelection,
+} from "@/features/airing/shared/seasonal";
+import { AiringSection } from "@/features/airing/view/airing-section";
 import { BookmarkBar } from "./bookmark-bar";
 import { SavedScenesSection } from "./saved-scenes-section";
 import { SearchRender } from "./search-card";
@@ -8,9 +13,17 @@ import { StatusPanel } from "./status-panel";
 
 interface HomeRenderProps {
     initialUrl?: string;
+    recommendations: SeasonalAnime[];
+    recommendationSelection: SeasonSelection;
+    recommendationError?: string | null;
 }
 
-export function HomeRender({ initialUrl }: HomeRenderProps) {
+export function HomeRender({
+    initialUrl,
+    recommendations,
+    recommendationSelection,
+    recommendationError = null,
+}: HomeRenderProps) {
     return (
         <div className="relative min-h-screen overflow-hidden">
             <div className="pointer-events-none fixed inset-0 z-0">
@@ -42,6 +55,13 @@ export function HomeRender({ initialUrl }: HomeRenderProps) {
                         </div>
 
                         <div className="mt-1 flex items-center gap-2">
+                            <Link
+                                href="/anime"
+                                prefetch
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
+                            >
+                                Anime Atlas
+                            </Link>
                             <Link
                                 href="/updates"
                                 prefetch
@@ -83,6 +103,14 @@ export function HomeRender({ initialUrl }: HomeRenderProps) {
                     >
                         <SearchRender initialUrl={initialUrl} />
                     </div>
+                </section>
+
+                <section className="mb-10">
+                    <AiringSection
+                        anime={recommendations}
+                        selection={recommendationSelection}
+                        error={recommendationError}
+                    />
                 </section>
 
                 <div className="mb-10">

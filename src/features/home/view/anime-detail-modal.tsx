@@ -31,7 +31,7 @@ function formatRelativeTime(value?: number | null) {
 }
 
 function formatOptionalSceneTime(value?: number | null) {
-    if (typeof value !== "number" || Number.isNaN(value)) {
+    if (value === null || value === undefined) {
         return "-";
     }
 
@@ -79,6 +79,8 @@ export function AnimeDetailModal() {
             !extraTitles.includes(value) && value !== selectedDetail.title,
     );
     const sceneDuration =
+        typeof selectedDetail.from === "number" &&
+        typeof selectedDetail.to === "number" &&
         selectedDetail.to > selectedDetail.from
             ? selectedDetail.to - selectedDetail.from
             : null;
@@ -86,8 +88,14 @@ export function AnimeDetailModal() {
         selectedDetail.source === "bookmark"
             ? formatRelativeTime(selectedDetail.savedAt)
             : formatRelativeTime(selectedDetail.timestamp);
-    const previewImage = selectedDetail.image;
+    const previewImage = selectedDetail.image ?? coverImage;
     const previewVideo = selectedDetail.video;
+    const hasSceneRange =
+        selectedDetail.from !== null || selectedDetail.to !== null;
+    const usesPreviewFallback = !selectedDetail.image && Boolean(previewImage);
+    const previewMessage = hasSceneRange
+        ? "Preview image is unavailable for this result."
+        : "This saved item was created before scene timing and preview data were stored. Search it again to restore the full trace.moe details.";
 
     const infoItems = [
         {
@@ -103,7 +111,9 @@ export function AnimeDetailModal() {
         },
         {
             label: "Scene",
-            value: `${formatSceneTime(selectedDetail.from)} - ${formatSceneTime(selectedDetail.to)}`,
+            value: hasSceneRange
+                ? `${formatSceneTime(selectedDetail.from)} - ${formatSceneTime(selectedDetail.to)}`
+                : "-",
         },
         {
             label: "Matched at",
@@ -223,17 +233,29 @@ export function AnimeDetailModal() {
                                     Scene data from trace.moe
                                 </div>
                                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-(--text-secondary)">
-                                    <span className="flex items-center gap-1.5">
-                                        <Clock className="size-3.5 text-(--text-faint)" />
-                                        {formatSceneTime(selectedDetail.from)} -{" "}
-                                        {formatSceneTime(selectedDetail.to)}
-                                    </span>
-                                    {selectedDetail.at !== null && (
-                                        <span>
-                                            Matched at{" "}
-                                            {formatSceneTime(selectedDetail.at)}
+                                    {hasSceneRange ? (
+                                        <span className="flex items-center gap-1.5">
+                                            <Clock className="size-3.5 text-(--text-faint)" />
+                                            {formatSceneTime(
+                                                selectedDetail.from,
+                                            )}{" "}
+                                            -{" "}
+                                            {formatSceneTime(selectedDetail.to)}
+                                        </span>
+                                    ) : (
+                                        <span className="text-(--text-faint)">
+                                            Scene timing unavailable
                                         </span>
                                     )}
+                                    {selectedDetail.at !== null &&
+                                        selectedDetail.at !== undefined && (
+                                            <span>
+                                                Matched at{" "}
+                                                {formatSceneTime(
+                                                    selectedDetail.at,
+                                                )}
+                                            </span>
+                                        )}
                                     {selectedDetail.savedAt && (
                                         <span className="flex items-center gap-1.5">
                                             <Bookmark className="size-3.5 text-(--text-faint)" />
@@ -255,8 +277,9 @@ export function AnimeDetailModal() {
                                     Scene Preview
                                 </p>
                                 <p className="mt-1 text-[11px] text-(--text-muted)">
-                                    Replay the matched shot from the API
-                                    response.
+                                    {usesPreviewFallback
+                                        ? "Scene frame is missing, showing the best available artwork instead."
+                                        : "Replay the matched shot from the API response."}
                                 </p>
                             </div>
 
@@ -315,8 +338,11 @@ export function AnimeDetailModal() {
                                     referrerPolicy="no-referrer"
                                 />
                             ) : (
-                                <div className="flex h-full items-center justify-center text-(--text-faint)">
+                                <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center text-(--text-faint)">
                                     <AlertCircle className="size-8" />
+                                    <p className="max-w-xs text-xs leading-relaxed">
+                                        {previewMessage}
+                                    </p>
                                 </div>
                             )}
                         </div>

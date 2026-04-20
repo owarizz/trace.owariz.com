@@ -58,7 +58,11 @@ export function SavedScenesSection() {
                                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                                     referrerPolicy="no-referrer"
                                 />
-                            ) : null}
+                            ) : (
+                                <div className="flex h-full items-center justify-center text-(--text-faint)">
+                                    <Bookmark className="size-4" />
+                                </div>
+                            )}
                         </div>
 
                         <div className="min-w-0 flex-1">

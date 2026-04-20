@@ -5,6 +5,8 @@ import {
     type AnimeSceneSnapshot,
     createSceneSnapshot,
     getAnimeId,
+    normalizeAnimeSceneSnapshot,
+    parseFiniteNumber,
 } from "./anime-scene";
 import type { SearchResult } from "./interface";
 
@@ -25,6 +27,45 @@ interface BookmarkStore {
     closePanel: () => void;
     openDetail: (detail: AnimeDetailState) => void;
     closeDetail: () => void;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
+
+function normalizeBookmarkItem(value: unknown): BookmarkItem | null {
+    if (!isRecord(value)) {
+        return null;
+    }
+
+    const snapshot = normalizeAnimeSceneSnapshot(value);
+
+    if (!snapshot) {
+        return null;
+    }
+
+    const savedAt = parseFiniteNumber(value.savedAt) ?? Date.now();
+    const id =
+        typeof value.id === "string" && value.id.trim().length > 0
+            ? value.id
+            : `bm-${snapshot.anilistId}-${snapshot.episode ?? 0}-${Math.floor(snapshot.from ?? 0)}`;
+
+    return {
+        id,
+        savedAt,
+        ...snapshot,
+    };
+}
+
+function normalizeBookmarks(value: unknown): BookmarkItem[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value
+        .filter(Boolean)
+        .map(normalizeBookmarkItem)
+        .filter((item): item is BookmarkItem => item !== null);
 }
 
 export function makeBookmarkId(result: SearchResult): string {
@@ -77,6 +118,17 @@ export const useBookmarkStore = create<BookmarkStore>()(
         {
             name: "trace_bookmarks",
             partialize: (state) => ({ bookmarks: state.bookmarks }),
+            merge: (persistedState, currentState) => {
+                const state = isRecord(persistedState)
+                    ? (persistedState as Partial<BookmarkStore>)
+                    : {};
+
+                return {
+                    ...currentState,
+                    ...state,
+                    bookmarks: normalizeBookmarks(state.bookmarks),
+                };
+            },
         },
     ),
 );
