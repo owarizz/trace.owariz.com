@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useBookmarkStore } from "../controller/bookmark-store";
 
 interface AnimeCharacter {
@@ -119,6 +120,11 @@ export function AnimeDetailModal() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [expanded, setExpanded] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         if (!openDetailId) {
@@ -152,7 +158,7 @@ export function AnimeDetailModal() {
         return () => window.removeEventListener("keydown", handler);
     }, [openDetailId, closeDetail]);
 
-    if (!openDetailId) return null;
+    if (!openDetailId || !mounted) return null;
 
     const title =
         anime?.title?.english ??
@@ -212,7 +218,7 @@ export function AnimeDetailModal() {
         KEEP_RELATIONS.includes(e.relationType),
     );
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-0 sm:p-4">
             {/* Backdrop */}
             <button
@@ -520,6 +526,7 @@ export function AnimeDetailModal() {
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body,
     );
 }

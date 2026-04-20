@@ -1,7 +1,8 @@
 "use client";
 
 import { Bookmark, Clock, ExternalLink, Info, Trash2, X } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
     type BookmarkItem,
     useBookmarkStore,
@@ -106,6 +107,11 @@ function BookmarkCard({ item }: { item: BookmarkItem }) {
 export function BookmarksPanel() {
     const { bookmarks, isOpen, togglePanel, clearBookmarks } =
         useBookmarkStore();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -116,9 +122,9 @@ export function BookmarksPanel() {
         return () => window.removeEventListener("keydown", handler);
     }, [isOpen, togglePanel]);
 
-    if (!isOpen) return null;
+    if (!isOpen || !mounted) return null;
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-40 flex justify-end">
             <button
                 type="button"
@@ -204,6 +210,7 @@ export function BookmarksPanel() {
                     </div>
                 )}
             </div>
-        </div>
+        </div>,
+        document.body,
     );
 }
