@@ -1,4 +1,4 @@
-import { Link } from "lucide-react";
+import { ArrowRight, Link } from "lucide-react";
 import type { RefObject } from "react";
 
 interface UrlFormProps {
@@ -15,25 +15,24 @@ export function UrlForm({
     onSubmit,
 }: UrlFormProps) {
     return (
-        <form onSubmit={onSubmit} className="space-y-3">
-            <div className="flex gap-2">
-                <div className="relative flex-1">
-                    <Link className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-(--text-muted)" />
-                    <input
-                        ref={inputRef}
-                        type="url"
-                        value={urlInput}
-                        onChange={(event) => setUrlInput(event.target.value)}
-                        placeholder="Paste image URL..."
-                        className="w-full rounded-xl border border-(--border-default) bg-(--bg-glass) py-3 pr-4 pl-11 text-sm text-(--text-primary) outline-none transition-all placeholder:text-(--text-faint) focus:border-(--accent) focus:ring-1 focus:ring-(--accent-muted)"
-                    />
-                </div>
+        <form onSubmit={onSubmit}>
+            <div className="relative flex items-center overflow-hidden rounded-2xl border border-(--border-default) bg-(--bg-glass) transition-all focus-within:border-(--accent)/60 focus-within:shadow-[0_0_0_3px_rgba(129,140,248,0.08)]">
+                <Link className="ml-4 size-4 shrink-0 text-(--text-faint)" />
+                <input
+                    ref={inputRef}
+                    type="url"
+                    value={urlInput}
+                    onChange={(event) => setUrlInput(event.target.value)}
+                    placeholder="Paste an image URL to identify..."
+                    className="flex-1 bg-transparent py-3.5 pr-2 pl-3 text-sm text-(--text-primary) outline-none placeholder:text-(--text-faint)"
+                />
                 <button
                     type="submit"
                     disabled={!urlInput.trim()}
-                    className="rounded-xl bg-(--accent) px-6 py-3 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 active:scale-95"
+                    className="mr-2 flex items-center gap-1.5 rounded-xl bg-(--accent) px-4 py-2 text-xs font-semibold text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30 active:scale-95"
                 >
                     Search
+                    <ArrowRight className="size-3.5" />
                 </button>
             </div>
         </form>

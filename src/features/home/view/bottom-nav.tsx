@@ -33,7 +33,7 @@ export function BottomNav() {
     return (
         <>
             <nav className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2">
-                <div className="flex items-center gap-1 rounded-2xl border border-(--border-default) bg-(--bg-elevated)/90 px-2 py-2 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.04)] backdrop-blur-xl">
+                <div className="flex items-center gap-1 rounded-2xl border border-white/8 bg-(--bg-elevated)/95 px-2 py-2 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.05),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-2xl">
                     {NAV_LINKS.map(({ href, icon: Icon, label }) => {
                         const isActive =
                             href === "/"
@@ -47,15 +47,18 @@ export function BottomNav() {
                                 prefetch
                                 className={`group relative flex flex-col items-center gap-1 rounded-xl px-4 py-2 transition-all duration-200 ${
                                     isActive
-                                        ? "bg-(--accent-soft) text-(--accent)"
-                                        : "text-(--text-faint) hover:bg-(--bg-glass) hover:text-(--text-muted)"
+                                        ? "text-(--accent)"
+                                        : "text-(--text-faint) hover:text-(--text-muted)"
                                 }`}
                             >
+                                {isActive && (
+                                    <span className="absolute inset-0 rounded-xl bg-(--accent-soft)" />
+                                )}
                                 <Icon
-                                    className={`size-5 transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
+                                    className={`relative z-10 size-5 transition-transform duration-200 ${isActive ? "drop-shadow-[0_0_6px_rgba(129,140,248,0.6)]" : "group-hover:scale-110"}`}
                                 />
                                 <span
-                                    className={`text-[10px] font-medium leading-none transition-colors ${
+                                    className={`relative z-10 text-[10px] font-medium leading-none transition-colors ${
                                         isActive
                                             ? "text-(--accent)"
                                             : "text-(--text-faint)"
@@ -64,7 +67,7 @@ export function BottomNav() {
                                     {label}
                                 </span>
                                 {isActive && (
-                                    <span className="absolute -bottom-0.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-(--accent) opacity-60" />
+                                    <span className="absolute -bottom-0.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-(--accent)" />
                                 )}
                             </Link>
                         );
@@ -77,14 +80,17 @@ export function BottomNav() {
                         onClick={togglePanel}
                         className={`group relative flex flex-col items-center gap-1 rounded-xl px-4 py-2 transition-all duration-200 ${
                             isOpen
-                                ? "bg-(--accent-soft) text-(--accent)"
-                                : "text-(--text-faint) hover:bg-(--bg-glass) hover:text-(--text-muted)"
+                                ? "text-(--accent)"
+                                : "text-(--text-faint) hover:text-(--text-muted)"
                         }`}
                         aria-label="Bookmarks"
                     >
-                        <div className="relative">
+                        {isOpen && (
+                            <span className="absolute inset-0 rounded-xl bg-(--accent-soft)" />
+                        )}
+                        <div className="relative z-10 relative">
                             <Bookmark
-                                className={`size-5 transition-transform duration-200 ${isOpen ? "" : "group-hover:scale-110"}`}
+                                className={`size-5 transition-transform duration-200 ${isOpen ? "drop-shadow-[0_0_6px_rgba(129,140,248,0.6)]" : "group-hover:scale-110"}`}
                             />
                             {count > 0 && (
                                 <span className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-(--accent) text-[9px] font-bold text-white shadow-sm">
@@ -93,14 +99,14 @@ export function BottomNav() {
                             )}
                         </div>
                         <span
-                            className={`text-[10px] font-medium leading-none transition-colors ${
+                            className={`relative z-10 text-[10px] font-medium leading-none transition-colors ${
                                 isOpen ? "text-(--accent)" : "text-(--text-faint)"
                             }`}
                         >
                             Saved
                         </span>
                         {isOpen && (
-                            <span className="absolute -bottom-0.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-(--accent) opacity-60" />
+                            <span className="absolute -bottom-0.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-(--accent)" />
                         )}
                     </button>
                 </div>

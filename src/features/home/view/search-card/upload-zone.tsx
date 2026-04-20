@@ -26,46 +26,53 @@ export function UploadZone({
             onDragLeave={onDragLeave}
             onDrop={onDrop}
             onClick={onClick}
-            className={`relative flex w-full flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed px-8 py-14 text-center transition-all duration-300 ${
+            className={`group relative flex w-full flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl border-2 border-dashed px-8 py-16 text-center transition-all duration-300 ${
                 isDragging
-                    ? "border-(--accent) bg-(--accent-soft) shadow-[0_0_40px_-10px_rgba(129,140,248,0.3)]"
-                    : "border-(--border-default) bg-(--bg-glass) hover:border-(--border-strong) hover:bg-(--bg-glass-hover)"
+                    ? "border-(--accent)/60 bg-(--accent-soft) shadow-[0_0_60px_-15px_rgba(129,140,248,0.4)]"
+                    : "border-(--border-default) bg-(--bg-glass) hover:border-(--accent)/30 hover:bg-(--bg-glass-hover) hover:shadow-[0_0_40px_-15px_rgba(129,140,248,0.15)]"
             }`}
         >
+            {isDragging && (
+                <div className="pointer-events-none absolute inset-0 rounded-3xl bg-linear-to-br from-(--accent)/8 via-transparent to-violet-500/8" />
+            )}
+
             <div
-                className={`flex size-14 items-center justify-center rounded-2xl transition-colors ${
+                className={`relative flex size-16 items-center justify-center rounded-2xl transition-all duration-300 ${
                     isDragging
-                        ? "bg-(--accent-muted) text-(--accent)"
-                        : "bg-(--bg-elevated) text-(--text-muted)"
+                        ? "scale-110 bg-(--accent-muted) shadow-[0_0_24px_rgba(129,140,248,0.4)]"
+                        : "bg-(--bg-elevated) group-hover:scale-105 group-hover:bg-(--bg-elevated)"
                 }`}
             >
-                <ImageIcon className="size-6" />
+                <ImageIcon
+                    className={`size-7 transition-colors duration-300 ${
+                        isDragging ? "text-(--accent)" : "text-(--text-muted) group-hover:text-(--text-secondary)"
+                    }`}
+                />
             </div>
-            <div>
-                <p className="mb-1 text-sm font-semibold text-(--text-primary)">
-                    {isDragging
-                        ? "Drop your image here"
-                        : "Drop an anime screenshot"}
+
+            <div className="space-y-1.5">
+                <p className="text-sm font-semibold text-(--text-primary)">
+                    {isDragging ? "Release to identify" : "Drop an anime screenshot"}
                 </p>
                 <p className="text-xs leading-relaxed text-(--text-muted)">
-                    or click to browse - max 25MB
+                    or{" "}
+                    <span className="text-(--accent)">click to browse</span>
+                    {" "}— images & video, up to 25 MB
                 </p>
             </div>
-            <div className="mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
-                <div className="flex items-center gap-1.5">
-                    <Clipboard className="size-3 text-(--text-faint)" />
-                    <span className="text-[10px] text-(--text-faint)">
-                        Ctrl+V to paste
-                    </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <kbd className="rounded border border-(--border-subtle) bg-(--bg-elevated) px-1 py-0.5 text-[9px] font-mono text-(--text-faint)">
+
+            <div className="flex items-center gap-4 text-[10px] text-(--text-faint)">
+                <span className="flex items-center gap-1.5">
+                    <Clipboard className="size-3" />
+                    Ctrl+V to paste
+                </span>
+                <span className="h-3 w-px bg-(--border-subtle)" />
+                <span className="flex items-center gap-1.5">
+                    <kbd className="rounded border border-(--border-subtle) bg-(--bg-elevated) px-1 py-0.5 font-mono text-[9px]">
                         /
                     </kbd>
-                    <span className="text-[10px] text-(--text-faint)">
-                        to search by URL
-                    </span>
-                </div>
+                    search by URL
+                </span>
             </div>
         </button>
     );
