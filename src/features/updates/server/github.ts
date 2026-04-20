@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { APP_CONFIG } from "@/common/config";
 
 const GITHUB_API_BASE = "https://api.github.com";
@@ -170,57 +171,59 @@ function getFallbackRepo(): UpdatesRepoSummary {
     };
 }
 
-export async function getUpdatesFeed(): Promise<UpdatesFeed> {
-    const repositoryPath = `/repos/${APP_CONFIG.github.owner}/${APP_CONFIG.github.repository}`;
+export const getUpdatesFeed = cache(
+    async function getUpdatesFeed(): Promise<UpdatesFeed> {
+        const repositoryPath = `/repos/${APP_CONFIG.github.owner}/${APP_CONFIG.github.repository}`;
 
-    const [repoResult, commitsResult, releaseResult] = await Promise.allSettled(
-        [
-            fetchGitHubJson<GitHubRepoResponse>(repositoryPath),
-            fetchGitHubJson<GitHubCommitResponse[]>(
-                `${repositoryPath}/commits?per_page=12`,
-            ),
-            fetchGitHubJson<GitHubReleaseResponse[]>(
-                `${repositoryPath}/releases?per_page=1`,
-            ),
-        ],
-    );
+        const [repoResult, commitsResult, releaseResult] =
+            await Promise.allSettled([
+                fetchGitHubJson<GitHubRepoResponse>(repositoryPath),
+                fetchGitHubJson<GitHubCommitResponse[]>(
+                    `${repositoryPath}/commits?per_page=12`,
+                ),
+                fetchGitHubJson<GitHubReleaseResponse[]>(
+                    `${repositoryPath}/releases?per_page=1`,
+                ),
+            ]);
 
-    const repo =
-        repoResult.status === "fulfilled"
-            ? {
-                  name: repoResult.value.name,
-                  fullName: repoResult.value.full_name,
-                  description: repoResult.value.description,
-                  url: repoResult.value.html_url,
-                  stars: repoResult.value.stargazers_count,
-                  forks: repoResult.value.forks_count,
-                  issues: repoResult.value.open_issues_count,
-                  lastPushAt: repoResult.value.pushed_at,
-              }
-            : getFallbackRepo();
+        const repo =
+            repoResult.status === "fulfilled"
+                ? {
+                      name: repoResult.value.name,
+                      fullName: repoResult.value.full_name,
+                      description: repoResult.value.description,
+                      url: repoResult.value.html_url,
+                      stars: repoResult.value.stargazers_count,
+                      forks: repoResult.value.forks_count,
+                      issues: repoResult.value.open_issues_count,
+                      lastPushAt: repoResult.value.pushed_at,
+                  }
+                : getFallbackRepo();
 
-    const commits =
-        commitsResult.status === "fulfilled"
-            ? commitsResult.value.map(mapCommit)
-            : [];
+        const commits =
+            commitsResult.status === "fulfilled"
+                ? commitsResult.value.map(mapCommit)
+                : [];
 
-    const latestRelease =
-        releaseResult.status === "fulfilled" && releaseResult.value.length > 0
-            ? mapRelease(releaseResult.value[0])
-            : null;
+        const latestRelease =
+            releaseResult.status === "fulfilled" &&
+            releaseResult.value.length > 0
+                ? mapRelease(releaseResult.value[0])
+                : null;
 
-    const hasPartialFailure =
-        repoResult.status === "rejected" ||
-        commitsResult.status === "rejected" ||
-        releaseResult.status === "rejected";
+        const hasPartialFailure =
+            repoResult.status === "rejected" ||
+            commitsResult.status === "rejected" ||
+            releaseResult.status === "rejected";
 
-    return {
-        repo,
-        commits,
-        latestRelease,
-        fetchedAt: new Date().toISOString(),
-        error: hasPartialFailure
-            ? "Some GitHub data could not be loaded right now. The page is showing what is available."
-            : null,
-    };
-}
+        return {
+            repo,
+            commits,
+            latestRelease,
+            fetchedAt: new Date().toISOString(),
+            error: hasPartialFailure
+                ? "Some GitHub data could not be loaded right now. The page is showing what is available."
+                : null,
+        };
+    },
+);

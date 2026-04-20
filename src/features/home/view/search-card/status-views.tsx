@@ -30,7 +30,9 @@ export function LoadingView({
 
                     <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-(--text-primary)">
-                            {isUploading ? "Uploading image…" : "Searching database…"}
+                            {isUploading
+                                ? "Uploading image…"
+                                : "Searching database…"}
                         </p>
                         <p className="mt-0.5 text-xs text-(--text-muted)">
                             {isUploading

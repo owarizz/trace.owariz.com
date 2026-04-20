@@ -8,12 +8,12 @@ import { useBookmarkStore } from "../controller/bookmark-store";
 
 const BookmarksPanel = dynamic(
     () => import("./bookmarks-panel").then((mod) => mod.BookmarksPanel),
-    { ssr: false },
+    { ssr: false, loading: () => null },
 );
 
 const AnimeDetailModal = dynamic(
     () => import("./anime-detail-modal").then((mod) => mod.AnimeDetailModal),
-    { ssr: false },
+    { ssr: false, loading: () => null },
 );
 
 const NAV_LINKS = [
@@ -100,7 +100,9 @@ export function BottomNav() {
                         </div>
                         <span
                             className={`relative z-10 text-[10px] font-medium leading-none transition-colors ${
-                                isOpen ? "text-(--accent)" : "text-(--text-faint)"
+                                isOpen
+                                    ? "text-(--accent)"
+                                    : "text-(--text-faint)"
                             }`}
                         >
                             Saved

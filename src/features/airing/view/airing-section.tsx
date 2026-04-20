@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { memo, useMemo } from "react";
 import { useBookmarkStore } from "@/features/home/controller/bookmark-store";
 import { useHistory } from "@/features/home/controller/history-hook";
 import {
@@ -103,7 +104,7 @@ interface AiringAnimeCardProps {
     trackedTitles: Set<string>;
 }
 
-function AiringAnimeCard({
+const AiringAnimeCard = memo(function AiringAnimeCard({
     anime,
     index,
     trackedMalIds,
@@ -129,7 +130,6 @@ function AiringAnimeCard({
                         fill
                         sizes="192px"
                         loading="lazy"
-                        unoptimized
                         referrerPolicy="no-referrer"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
@@ -191,7 +191,7 @@ function AiringAnimeCard({
             </div>
         </a>
     );
-}
+});
 
 interface AiringSectionProps {
     anime: SeasonalAnime[];
@@ -207,33 +207,12 @@ export function AiringSection({
     const bookmarks = useBookmarkStore((state) => state.bookmarks);
     const { history, isLoaded } = useHistory();
 
-    const trackedMalIds = new Set<number>();
-    const trackedTitles = new Set<string>();
+    const { trackedMalIds, trackedTitles } = useMemo(() => {
+        const malIds = new Set<number>();
+        const titles = new Set<string>();
 
-    for (const item of bookmarks) {
-        if (item.animeInfo?.idMal) {
-            trackedMalIds.add(item.animeInfo.idMal);
-        }
-
-        for (const value of [
-            item.title,
-            item.nativeTitle,
-            item.animeInfo?.title.romaji,
-            item.animeInfo?.title.english,
-            item.animeInfo?.title.native,
-            ...(item.animeInfo?.synonyms ?? []),
-        ]) {
-            const normalized = normalizeTitle(value);
-            if (normalized) trackedTitles.add(normalized);
-        }
-    }
-
-    if (isLoaded) {
-        for (const item of history) {
-            if (item.animeInfo?.idMal) {
-                trackedMalIds.add(item.animeInfo.idMal);
-            }
-
+        for (const item of bookmarks) {
+            if (item.animeInfo?.idMal) malIds.add(item.animeInfo.idMal);
             for (const value of [
                 item.title,
                 item.nativeTitle,
@@ -243,12 +222,34 @@ export function AiringSection({
                 ...(item.animeInfo?.synonyms ?? []),
             ]) {
                 const normalized = normalizeTitle(value);
-                if (normalized) trackedTitles.add(normalized);
+                if (normalized) titles.add(normalized);
             }
         }
-    }
 
-    const displayAnime = sortAnime(anime, trackedMalIds, trackedTitles);
+        if (isLoaded) {
+            for (const item of history) {
+                if (item.animeInfo?.idMal) malIds.add(item.animeInfo.idMal);
+                for (const value of [
+                    item.title,
+                    item.nativeTitle,
+                    item.animeInfo?.title.romaji,
+                    item.animeInfo?.title.english,
+                    item.animeInfo?.title.native,
+                    ...(item.animeInfo?.synonyms ?? []),
+                ]) {
+                    const normalized = normalizeTitle(value);
+                    if (normalized) titles.add(normalized);
+                }
+            }
+        }
+
+        return { trackedMalIds: malIds, trackedTitles: titles };
+    }, [bookmarks, history, isLoaded]);
+
+    const displayAnime = useMemo(
+        () => sortAnime(anime, trackedMalIds, trackedTitles),
+        [anime, trackedMalIds, trackedTitles],
+    );
 
     if (displayAnime.length === 0 && !error) {
         return null;

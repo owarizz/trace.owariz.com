@@ -52,8 +52,6 @@ export function SearchRender({ initialUrl }: SearchRenderProps) {
     const [preview, setPreview] = useState<string | null>(null);
     const [pendingUrlFocus, setPendingUrlFocus] = useState(false);
 
-    const toggleBookmarks = useBookmarkStore((state) => state.togglePanel);
-
     const fileInputRef = useRef<HTMLInputElement>(null);
     const urlInputRef = useRef<HTMLInputElement>(null);
     const resultsRef = useRef<HTMLDivElement>(null);
@@ -260,7 +258,7 @@ export function SearchRender({ initialUrl }: SearchRenderProps) {
             !event.metaKey
         ) {
             event.preventDefault();
-            toggleBookmarks();
+            useBookmarkStore.getState().togglePanel();
         }
     });
 

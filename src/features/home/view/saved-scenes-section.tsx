@@ -100,7 +100,6 @@ export function SavedScenesSection() {
                                     })}
                                 </span>
                             </div>
-
                         </div>
                     </button>
                 ))}

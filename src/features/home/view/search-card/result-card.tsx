@@ -12,7 +12,7 @@ import {
     VolumeX,
 } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { toast } from "sonner";
 import {
     createDetailStateFromSearch,
@@ -63,7 +63,7 @@ interface ResultCardProps {
     isBestMatch?: boolean;
 }
 
-export function ResultCard({
+export const ResultCard = memo(function ResultCard({
     result,
     index,
     isBestMatch = false,
@@ -180,7 +180,14 @@ export function ResultCard({
                                 referrerPolicy="no-referrer"
                                 fill
                                 sizes="(max-width: 640px) 100vw, 208px"
-                                loading={index < 3 ? "eager" : "lazy"}
+                                priority={isBestMatch}
+                                loading={
+                                    isBestMatch
+                                        ? undefined
+                                        : index < 3
+                                          ? "eager"
+                                          : "lazy"
+                                }
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                             {/* Play overlay */}
@@ -222,10 +229,14 @@ export function ResultCard({
                         {/* Similarity bar */}
                         <div className="space-y-1">
                             <div className="flex items-center justify-between">
-                                <span className={`text-[10px] font-semibold ${sim.color}`}>
+                                <span
+                                    className={`text-[10px] font-semibold ${sim.color}`}
+                                >
                                     {sim.label} match
                                 </span>
-                                <span className={`font-mono text-[10px] tabular-nums ${sim.color}`}>
+                                <span
+                                    className={`font-mono text-[10px] tabular-nums ${sim.color}`}
+                                >
                                     {(result.similarity * 100).toFixed(1)}%
                                 </span>
                             </div>
@@ -309,4 +320,4 @@ export function ResultCard({
             </div>
         </div>
     );
-}
+});

@@ -1,6 +1,6 @@
 import {
-    ArrowRight,
     ArrowLeft,
+    ArrowRight,
     ArrowUpRight,
     Layers3,
     Sparkles,
@@ -16,7 +16,7 @@ import {
     type SeasonName,
 } from "../shared/seasonal";
 
-function formatMemberCount(value: number | null) {
+function _formatMemberCount(value: number | null) {
     if (!value) return null;
     if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
     if (value >= 1_000) return `${Math.round(value / 1_000)}K`;
@@ -51,7 +51,6 @@ export function SeasonAtlasRender({ archive, feed }: SeasonAtlasRenderProps) {
             </div>
 
             <div className="relative z-10 mx-auto max-w-3xl px-6 pb-28 pt-12 sm:pt-16">
-
                 {/* ── Header ── */}
                 <header
                     className="mb-8 animate-fade-in"
@@ -200,7 +199,6 @@ export function SeasonAtlasRender({ archive, feed }: SeasonAtlasRenderProps) {
                                                 }
                                                 fill
                                                 sizes="40px"
-                                                unoptimized
                                                 referrerPolicy="no-referrer"
                                                 className="object-cover"
                                             />

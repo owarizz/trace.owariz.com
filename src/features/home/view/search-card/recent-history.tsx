@@ -7,8 +7,10 @@ import { useBookmarkStore } from "../../controller/bookmark-store";
 import type { HistoryItem } from "../../controller/history-hook";
 
 function similarityBadgeClass(similarity: number) {
-    if (similarity >= 0.87) return "bg-black/70 text-emerald-300 border-emerald-400/40";
-    if (similarity >= 0.70) return "bg-black/70 text-amber-300 border-amber-400/40";
+    if (similarity >= 0.87)
+        return "bg-black/70 text-emerald-300 border-emerald-400/40";
+    if (similarity >= 0.7)
+        return "bg-black/70 text-amber-300 border-amber-400/40";
     return "bg-black/70 text-rose-300 border-rose-400/40";
 }
 
@@ -70,7 +72,9 @@ export function RecentHistory({ history, onClear }: RecentHistoryProps) {
                                     <ImageIcon className="size-6 text-(--text-faint)" />
                                 </div>
                             )}
-                            <div className={`absolute top-1.5 left-1.5 rounded-md border px-1.5 py-0.5 text-[9px] font-bold backdrop-blur-md ${similarityBadgeClass(item.similarity)}`}>
+                            <div
+                                className={`absolute top-1.5 left-1.5 rounded-md border px-1.5 py-0.5 text-[9px] font-bold backdrop-blur-md ${similarityBadgeClass(item.similarity)}`}
+                            >
                                 {(item.similarity * 100).toFixed(0)}%
                             </div>
                         </div>

@@ -18,7 +18,6 @@ export function ProfileRender() {
             </div>
 
             <div className="relative z-10 mx-auto max-w-3xl px-6 pb-28 pt-12 sm:pt-16">
-
                 {/* ── Header ── */}
                 <header
                     className="mb-8 animate-fade-in"
@@ -38,7 +37,8 @@ export function ProfileRender() {
                     </h1>
 
                     <p className="mt-3 text-sm leading-relaxed text-(--text-secondary)">
-                        Live quota and concurrency data for this session's trace.moe API account.
+                        Live quota and concurrency data for this session's
+                        trace.moe API account.
                     </p>
                 </header>
 

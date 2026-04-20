@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { fetchJikan } from "@/common/server/jikan";
 import type {
     SeasonArchiveYear,
@@ -176,26 +177,30 @@ export function isSeasonSelectionValid(
     );
 }
 
-export async function getSeasonArchive(): Promise<SeasonArchiveYear[]> {
-    try {
-        const response = await fetchJikan<JikanSeasonArchiveResponse>(
-            "/seasons",
-            {},
-            { revalidate: 86400 },
-        );
+export const getSeasonArchive = cache(
+    async function getSeasonArchive(): Promise<SeasonArchiveYear[]> {
+        try {
+            const response = await fetchJikan<JikanSeasonArchiveResponse>(
+                "/seasons",
+                {},
+                { revalidate: 86400 },
+            );
 
-        return response.data.map((entry) => ({
-            year: entry.year,
-            seasons: entry.seasons
-                .map((season) => normalizeSeasonName(season))
-                .filter((season): season is SeasonName => season !== null),
-        }));
-    } catch {
-        return [];
-    }
-}
+            return response.data.map((entry) => ({
+                year: entry.year,
+                seasons: entry.seasons
+                    .map((season) => normalizeSeasonName(season))
+                    .filter((season): season is SeasonName => season !== null),
+            }));
+        } catch {
+            return [];
+        }
+    },
+);
 
-export async function getCurrentSeasonAnime(limit = 12): Promise<SeasonalFeed> {
+export const getCurrentSeasonAnime = cache(async function getCurrentSeasonAnime(
+    limit = 12,
+): Promise<SeasonalFeed> {
     const fallbackSelection = getCurrentSeason();
 
     try {
@@ -225,9 +230,9 @@ export async function getCurrentSeasonAnime(limit = 12): Promise<SeasonalFeed> {
             error: "Could not load this season's recommendations right now.",
         };
     }
-}
+});
 
-export async function getSeasonArchivePage(
+export const getSeasonArchivePage = cache(async function getSeasonArchivePage(
     selection: SeasonSelection,
     page = 1,
 ): Promise<SeasonalArchivePage> {
@@ -265,4 +270,4 @@ export async function getSeasonArchivePage(
             error: "Could not load anime for this season right now.",
         };
     }
-}
+});

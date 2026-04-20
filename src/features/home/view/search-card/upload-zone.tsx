@@ -45,19 +45,22 @@ export function UploadZone({
             >
                 <ImageIcon
                     className={`size-7 transition-colors duration-300 ${
-                        isDragging ? "text-(--accent)" : "text-(--text-muted) group-hover:text-(--text-secondary)"
+                        isDragging
+                            ? "text-(--accent)"
+                            : "text-(--text-muted) group-hover:text-(--text-secondary)"
                     }`}
                 />
             </div>
 
             <div className="space-y-1.5">
                 <p className="text-sm font-semibold text-(--text-primary)">
-                    {isDragging ? "Release to identify" : "Drop an anime screenshot"}
+                    {isDragging
+                        ? "Release to identify"
+                        : "Drop an anime screenshot"}
                 </p>
                 <p className="text-xs leading-relaxed text-(--text-muted)">
-                    or{" "}
-                    <span className="text-(--accent)">click to browse</span>
-                    {" "}— images & video, up to 25 MB
+                    or <span className="text-(--accent)">click to browse</span>{" "}
+                    — images & video, up to 25 MB
                 </p>
             </div>
 
