@@ -42,7 +42,17 @@ export function BookmarkBar() {
             </button>
 
             {isOpen ? <BookmarksPanel /> : null}
-            {selectedDetail ? <AnimeDetailModal /> : null}
+            {selectedDetail ? (
+                <AnimeDetailModal
+                    key={[
+                        selectedDetail.source,
+                        selectedDetail.anilistId,
+                        selectedDetail.savedAt ?? "",
+                        selectedDetail.timestamp ?? "",
+                        selectedDetail.from,
+                    ].join(":")}
+                />
+            ) : null}
         </>
     );
 }

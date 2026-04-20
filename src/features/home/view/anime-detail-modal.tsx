@@ -16,10 +16,7 @@ import {
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import {
-    formatSceneTime,
-    getAnimeCoverImage,
-} from "../controller/anime-scene";
+import { formatSceneTime, getAnimeCoverImage } from "../controller/anime-scene";
 import { useBookmarkStore } from "../controller/bookmark-store";
 
 const SOURCE_LABELS = {
@@ -55,11 +52,6 @@ export function AnimeDetailModal() {
     const [isMuted, setIsMuted] = useState(true);
 
     useEffect(() => {
-        setShowVideo(false);
-        setIsMuted(true);
-    }, [selectedDetail]);
-
-    useEffect(() => {
         if (!selectedDetail) return;
 
         const handler = (event: KeyboardEvent) => {
@@ -83,7 +75,8 @@ export function AnimeDetailModal() {
         selectedDetail.nativeTitle,
     ]).filter((value) => value !== selectedDetail.title);
     const synonyms = unique(animeInfo?.synonyms ?? []).filter(
-        (value) => !extraTitles.includes(value) && value !== selectedDetail.title,
+        (value) =>
+            !extraTitles.includes(value) && value !== selectedDetail.title,
     );
     const sceneDuration =
         selectedDetail.to > selectedDetail.from
@@ -104,7 +97,9 @@ export function AnimeDetailModal() {
         {
             label: "Episode",
             value:
-                selectedDetail.episode !== null ? `${selectedDetail.episode}` : "-",
+                selectedDetail.episode !== null
+                    ? `${selectedDetail.episode}`
+                    : "-",
         },
         {
             label: "Scene",
@@ -200,8 +195,10 @@ export function AnimeDetailModal() {
                             <div className="mt-3 flex flex-wrap items-center gap-2">
                                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
                                     <Percent className="size-3" />
-                                    {(selectedDetail.similarity * 100).toFixed(1)}%
-                                    match
+                                    {(selectedDetail.similarity * 100).toFixed(
+                                        1,
+                                    )}
+                                    % match
                                 </span>
                                 {selectedDetail.episode !== null && (
                                     <span className="rounded-full border border-(--border-subtle) bg-(--bg-glass) px-2.5 py-1 text-[11px] text-(--text-secondary)">
@@ -240,7 +237,10 @@ export function AnimeDetailModal() {
                                     {selectedDetail.savedAt && (
                                         <span className="flex items-center gap-1.5">
                                             <Bookmark className="size-3.5 text-(--text-faint)" />
-                                            Saved {formatRelativeTime(selectedDetail.savedAt)}
+                                            Saved{" "}
+                                            {formatRelativeTime(
+                                                selectedDetail.savedAt,
+                                            )}
                                         </span>
                                     )}
                                 </div>
@@ -255,7 +255,8 @@ export function AnimeDetailModal() {
                                     Scene Preview
                                 </p>
                                 <p className="mt-1 text-[11px] text-(--text-muted)">
-                                    Replay the matched shot from the API response.
+                                    Replay the matched shot from the API
+                                    response.
                                 </p>
                             </div>
 

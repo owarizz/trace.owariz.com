@@ -3,8 +3,8 @@
 import { formatDistanceToNow } from "date-fns";
 import { Bookmark, Clock, Info } from "lucide-react";
 import Image from "next/image";
-import { useBookmarkStore } from "../controller/bookmark-store";
 import { formatSceneTime } from "../controller/anime-scene";
+import { useBookmarkStore } from "../controller/bookmark-store";
 
 export function SavedScenesSection() {
     const bookmarks = useBookmarkStore((state) => state.bookmarks);
