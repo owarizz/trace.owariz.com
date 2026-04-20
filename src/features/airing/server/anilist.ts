@@ -1,4 +1,5 @@
 import "server-only";
+import { fetchAniList } from "@/common/server/anilist";
 
 export interface AiringAnime {
     id: number;
@@ -50,28 +51,23 @@ query ($season: MediaSeason, $seasonYear: Int) {
 }
 `;
 
+interface AiringQueryResponse {
+    Page: {
+        media: AiringAnime[];
+    };
+}
+
 export async function getAiringAnime(): Promise<AiringAnime[]> {
     const season = getCurrentSeason();
     const seasonYear = new Date().getFullYear();
 
     try {
-        const response = await fetch("https://graphql.anilist.co", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-            },
-            body: JSON.stringify({
-                query: AIRING_QUERY,
-                variables: { season, seasonYear },
-            }),
-            next: { revalidate: 3600 },
-        });
+        const data = await fetchAniList<
+            AiringQueryResponse,
+            { season: ReturnType<typeof getCurrentSeason>; seasonYear: number }
+        >(AIRING_QUERY, { season, seasonYear }, { revalidate: 3600 });
 
-        if (!response.ok) return [];
-
-        const json = await response.json();
-        return (json?.data?.Page?.media ?? []) as AiringAnime[];
+        return data.Page.media ?? [];
     } catch {
         return [];
     }

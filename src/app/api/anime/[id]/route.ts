@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fetchAniList } from "@/common/server/anilist";
 
 const DETAIL_QUERY = `
 query AnimeDetail($id: Int!) {
@@ -42,6 +43,10 @@ query AnimeDetail($id: Int!) {
 }
 `;
 
+interface AnimeDetailQueryResponse {
+    Media: Record<string, unknown> | null;
+}
+
 export async function GET(
     _request: Request,
     { params }: { params: Promise<{ id: string }> },
@@ -57,28 +62,11 @@ export async function GET(
     }
 
     try {
-        const response = await fetch("https://graphql.anilist.co", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-            },
-            body: JSON.stringify({
-                query: DETAIL_QUERY,
-                variables: { id: animeId },
-            }),
-            next: { revalidate: 300 },
-        });
-
-        if (!response.ok) {
-            return NextResponse.json(
-                { error: "Failed to fetch anime details" },
-                { status: 502 },
-            );
-        }
-
-        const json = await response.json();
-        const media = json?.data?.Media;
+        const data = await fetchAniList<
+            AnimeDetailQueryResponse,
+            { id: number }
+        >(DETAIL_QUERY, { id: animeId }, { revalidate: 300 });
+        const media = data.Media;
 
         if (!media) {
             return NextResponse.json(

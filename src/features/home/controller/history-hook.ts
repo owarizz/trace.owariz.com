@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
+import {
+    type AnimeSceneSnapshot,
+    createSceneSnapshot,
+    getAnimeCoverImage,
+} from "./anime-scene";
 import type { SearchResult } from "./interface";
 
-export interface HistoryItem {
+export interface HistoryItem extends AnimeSceneSnapshot {
     id: string;
     timestamp: number;
-    title: string;
     coverImage: string | null;
-    similarity: number;
-    episode: number | string | null;
-    anilistId: number;
 }
 
 const HISTORY_KEY = "trace_history";
@@ -33,25 +34,14 @@ export function useHistory() {
 
     const addToHistory = useCallback((bestMatch: SearchResult) => {
         setHistory((previousHistory) => {
-            const anilistInfo =
-                typeof bestMatch.anilist === "object"
-                    ? bestMatch.anilist
-                    : null;
-            const anilistId = anilistInfo
-                ? anilistInfo.id
-                : (bestMatch.anilist as number);
+            const snapshot = createSceneSnapshot(bestMatch);
 
             const newItem: HistoryItem = {
-                id: `${anilistId}-${Date.now()}`,
+                id: `${snapshot.anilistId}-${Date.now()}`,
                 timestamp: Date.now(),
-                title:
-                    anilistInfo?.title?.romaji ||
-                    anilistInfo?.title?.native ||
-                    "Unknown Anime",
-                coverImage: anilistInfo?.coverImage?.medium || bestMatch.image,
-                similarity: bestMatch.similarity,
-                episode: bestMatch.episode,
-                anilistId,
+                coverImage:
+                    getAnimeCoverImage(snapshot.animeInfo) ?? snapshot.image,
+                ...snapshot,
             };
 
             if (

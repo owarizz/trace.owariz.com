@@ -1,8 +1,10 @@
 "use client";
 
-import { Bookmark, Clock, ExternalLink, Info, Trash2, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Bookmark, Clock, Info, Trash2, X } from "lucide-react";
+import Image from "next/image";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import type { AnimeDetailState } from "../controller/anime-scene";
 import {
     type BookmarkItem,
     useBookmarkStore,
@@ -28,18 +30,28 @@ function getSimilarityStyle(sim: number) {
     return { text: "text-red-400", bg: "bg-red-400/10" };
 }
 
-function BookmarkCard({ item }: { item: BookmarkItem }) {
-    const { removeBookmark, openDetail } = useBookmarkStore();
+interface BookmarkCardProps {
+    item: BookmarkItem;
+    onOpenDetail: (detail: AnimeDetailState) => void;
+    onRemoveBookmark: (id: string) => void;
+}
+
+function BookmarkCard({
+    item,
+    onOpenDetail,
+    onRemoveBookmark,
+}: BookmarkCardProps) {
     const { text, bg } = getSimilarityStyle(item.similarity);
 
     return (
         <div className="glass-card noise group relative flex gap-3 overflow-hidden p-3">
             <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-lg border border-(--border-subtle) bg-(--bg-elevated)">
-                {/* biome-ignore lint/performance/noImgElement: trace.moe image URLs aren't in next/image allowlist */}
-                <img
+                <Image
                     src={`${item.image}?size=s`}
                     alt={item.title}
-                    className="h-full w-full object-cover"
+                    fill
+                    sizes="44px"
+                    className="object-cover"
                     referrerPolicy="no-referrer"
                 />
                 <div
@@ -75,24 +87,20 @@ function BookmarkCard({ item }: { item: BookmarkItem }) {
                 <div className="mt-1.5 flex items-center gap-1">
                     <button
                         type="button"
-                        onClick={() => openDetail(item.anilistId)}
+                        onClick={() =>
+                            onOpenDetail({
+                                source: "bookmark",
+                                ...item,
+                            })
+                        }
                         className="flex items-center gap-1 rounded-md border border-(--border-subtle) bg-(--bg-glass) px-1.5 py-0.5 text-[10px] text-(--text-muted) transition-all hover:border-(--border-default) hover:text-(--text-secondary) active:scale-95"
                     >
                         <Info className="size-2.5" />
                         Details
                     </button>
-                    <a
-                        href={`https://anilist.co/anime/${item.anilistId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 rounded-md border border-(--border-subtle) bg-(--bg-glass) px-1.5 py-0.5 text-[10px] text-(--text-muted) transition-all hover:border-(--border-default) hover:text-(--text-secondary) active:scale-95"
-                    >
-                        <ExternalLink className="size-2.5" />
-                        AniList
-                    </a>
                     <button
                         type="button"
-                        onClick={() => removeBookmark(item.id)}
+                        onClick={() => onRemoveBookmark(item.id)}
                         className="ml-auto flex size-5 items-center justify-center rounded text-(--text-faint) transition-all hover:text-(--error)"
                         aria-label="Remove bookmark"
                     >
@@ -105,13 +113,12 @@ function BookmarkCard({ item }: { item: BookmarkItem }) {
 }
 
 export function BookmarksPanel() {
-    const { bookmarks, isOpen, togglePanel, clearBookmarks } =
-        useBookmarkStore();
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    const bookmarks = useBookmarkStore((state) => state.bookmarks);
+    const isOpen = useBookmarkStore((state) => state.isOpen);
+    const togglePanel = useBookmarkStore((state) => state.togglePanel);
+    const clearBookmarks = useBookmarkStore((state) => state.clearBookmarks);
+    const openDetail = useBookmarkStore((state) => state.openDetail);
+    const removeBookmark = useBookmarkStore((state) => state.removeBookmark);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -122,7 +129,7 @@ export function BookmarksPanel() {
         return () => window.removeEventListener("keydown", handler);
     }, [isOpen, togglePanel]);
 
-    if (!isOpen || !mounted) return null;
+    if (!isOpen) return null;
 
     return createPortal(
         <div className="fixed inset-0 z-40 flex justify-end">
@@ -134,7 +141,6 @@ export function BookmarksPanel() {
             />
 
             <div className="relative z-10 flex h-full w-full max-w-sm flex-col border-l border-(--border-default) bg-(--bg-secondary) shadow-2xl">
-                {/* Header */}
                 <div className="flex items-center justify-between border-b border-(--border-subtle) px-5 py-4">
                     <div className="flex items-center gap-2">
                         <Bookmark className="size-4 text-(--accent)" />
@@ -170,7 +176,6 @@ export function BookmarksPanel() {
                     </div>
                 </div>
 
-                {/* Body */}
                 <div className="flex-1 overflow-y-auto overscroll-contain p-4">
                     {bookmarks.length === 0 ? (
                         <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
@@ -191,13 +196,17 @@ export function BookmarksPanel() {
                     ) : (
                         <div className="space-y-2">
                             {bookmarks.map((item) => (
-                                <BookmarkCard key={item.id} item={item} />
+                                <BookmarkCard
+                                    key={item.id}
+                                    item={item}
+                                    onOpenDetail={openDetail}
+                                    onRemoveBookmark={removeBookmark}
+                                />
                             ))}
                         </div>
                     )}
                 </div>
 
-                {/* Footer hint */}
                 {bookmarks.length > 0 && (
                     <div className="border-t border-(--border-subtle) px-5 py-3 text-center">
                         <p className="text-[10px] text-(--text-faint)">
@@ -205,7 +214,7 @@ export function BookmarksPanel() {
                             <kbd className="rounded border border-(--border-default) bg-(--bg-elevated) px-1 py-0.5 text-[9px] font-mono">
                                 B
                             </kbd>{" "}
-                            to toggle · {bookmarks.length}/50 saved
+                            to toggle - {bookmarks.length}/50 saved
                         </p>
                     </div>
                 )}

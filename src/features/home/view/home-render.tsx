@@ -1,18 +1,16 @@
 import { Activity, ExternalLink, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { APP_CONFIG } from "@/common/config";
-import type { AiringAnime } from "@/features/airing/server/anilist";
-import { AiringSection } from "@/features/airing/view/airing-section";
+import { APP_CONFIG } from "@/common/config/site";
 import { BookmarkBar } from "./bookmark-bar";
+import { SavedScenesSection } from "./saved-scenes-section";
 import { SearchRender } from "./search-card";
 import { StatusPanel } from "./status-panel";
 
 interface HomeRenderProps {
     initialUrl?: string;
-    airingAnime?: AiringAnime[];
 }
 
-export function HomeRender({ initialUrl, airingAnime = [] }: HomeRenderProps) {
+export function HomeRender({ initialUrl }: HomeRenderProps) {
     return (
         <div className="relative min-h-screen overflow-hidden">
             <div className="pointer-events-none fixed inset-0 z-0">
@@ -87,11 +85,9 @@ export function HomeRender({ initialUrl, airingAnime = [] }: HomeRenderProps) {
                     </div>
                 </section>
 
-                {airingAnime.length > 0 && (
-                    <section className="mb-10">
-                        <AiringSection anime={airingAnime} />
-                    </section>
-                )}
+                <div className="mb-10">
+                    <SavedScenesSection />
+                </div>
 
                 <section
                     className="animate-fade-in"

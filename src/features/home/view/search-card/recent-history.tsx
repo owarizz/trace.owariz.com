@@ -1,6 +1,9 @@
+"use client";
+
 import { formatDistanceToNow } from "date-fns";
 import { Clock, ImageIcon, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { useBookmarkStore } from "../../controller/bookmark-store";
 import type { HistoryItem } from "../../controller/history-hook";
 
 interface RecentHistoryProps {
@@ -9,6 +12,8 @@ interface RecentHistoryProps {
 }
 
 export function RecentHistory({ history, onClear }: RecentHistoryProps) {
+    const openDetail = useBookmarkStore((state) => state.openDetail);
+
     if (history.length === 0) {
         return null;
     }
@@ -34,11 +39,15 @@ export function RecentHistory({ history, onClear }: RecentHistoryProps) {
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
                 {history.map((item) => (
-                    <a
+                    <button
+                        type="button"
                         key={item.id}
-                        href={`https://anilist.co/anime/${item.anilistId}`}
-                        target="_blank"
-                        rel="noreferrer"
+                        onClick={() =>
+                            openDetail({
+                                source: "history",
+                                ...item,
+                            })
+                        }
                         className="group flex flex-col gap-2 rounded-xl border border-(--border-subtle) bg-(--bg-glass) p-2.5 transition-all hover:-translate-y-0.5 hover:border-(--border-default) hover:bg-(--bg-glass-hover)"
                     >
                         <div className="relative aspect-3/4 w-full overflow-hidden rounded-lg bg-(--bg-elevated)">
@@ -78,7 +87,7 @@ export function RecentHistory({ history, onClear }: RecentHistoryProps) {
                                 </span>
                             </div>
                         </div>
-                    </a>
+                    </button>
                 ))}
             </div>
         </div>

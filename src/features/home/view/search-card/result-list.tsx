@@ -1,4 +1,4 @@
-import type { SearchResult } from "../../controller";
+import type { SearchResult } from "../../controller/interface";
 import { ResultCard } from "./result-card";
 
 interface ResultListProps {

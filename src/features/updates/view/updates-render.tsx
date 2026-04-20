@@ -92,6 +92,7 @@ function Avatar({
                 alt={name}
                 width={size}
                 height={size}
+                sizes={`${size}px`}
                 className="rounded-full border border-(--border-subtle) shrink-0"
                 style={{ width: size, height: size }}
             />

@@ -1,6 +1,10 @@
-import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { APP_CONFIG } from "@/common/config";
+import { APP_CONFIG } from "@/common/config/site";
+import {
+    isAbortError,
+    requestJson,
+    uploadFormDataJson,
+} from "@/common/lib/http/browser";
 import { useHistory } from "./history-hook";
 import type { SearchResponse } from "./interface";
 
@@ -38,8 +42,8 @@ function buildSearchParams(options: SearchOptions) {
 }
 
 function getSearchErrorMessage(error: unknown) {
-    if (axios.isAxiosError(error) && error.response?.data?.error) {
-        return error.response.data.error as string;
+    if (error instanceof Error && error.message) {
+        return error.message;
     }
 
     return "Failed to search. Please try again.";
@@ -105,32 +109,25 @@ export function useSearch() {
                 formData.append("image", file);
 
                 const params = buildSearchParams(options);
-                const response = await axios.post<SearchResponse>(
+                const response = await uploadFormDataJson<SearchResponse>(
                     `${APP_CONFIG.traceApiBaseUrl}/search?${params.toString()}`,
                     formData,
                     {
                         signal: controller.signal,
-                        onUploadProgress: (progressEvent) => {
-                            if (progressEvent.total) {
-                                const percentCompleted = Math.round(
-                                    (progressEvent.loaded * 100) /
-                                        progressEvent.total,
-                                );
-
-                                setState((previousState) => ({
-                                    ...previousState,
-                                    uploadProgress: percentCompleted,
-                                }));
-                            }
+                        onUploadProgress: (percentCompleted) => {
+                            setState((previousState) => ({
+                                ...previousState,
+                                uploadProgress: percentCompleted,
+                            }));
                         },
                     },
                 );
 
                 if (abortRef.current === controller) {
-                    commitSearchResponse(response.data);
+                    commitSearchResponse(response);
                 }
             } catch (error) {
-                if (!axios.isCancel(error) && abortRef.current === controller) {
+                if (!isAbortError(error) && abortRef.current === controller) {
                     setState({
                         data: null,
                         error: getSearchErrorMessage(error),
@@ -160,18 +157,19 @@ export function useSearch() {
                 const params = buildSearchParams(options);
                 params.append("url", imageUrl);
 
-                const response = await axios.get<SearchResponse>(
+                const response = await requestJson<SearchResponse>(
                     `${APP_CONFIG.traceApiBaseUrl}/search?${params.toString()}`,
                     {
                         signal: controller.signal,
+                        cache: "no-store",
                     },
                 );
 
                 if (abortRef.current === controller) {
-                    commitSearchResponse(response.data);
+                    commitSearchResponse(response);
                 }
             } catch (error) {
-                if (!axios.isCancel(error) && abortRef.current === controller) {
+                if (!isAbortError(error) && abortRef.current === controller) {
                     setState({
                         data: null,
                         error: getSearchErrorMessage(error),

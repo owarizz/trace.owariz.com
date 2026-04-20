@@ -1,13 +1,28 @@
 "use client";
 
 import { Bookmark } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useBookmarkStore } from "../controller/bookmark-store";
-import { AnimeDetailModal } from "./anime-detail-modal";
-import { BookmarksPanel } from "./bookmarks-panel";
+
+const BookmarksPanel = dynamic(
+    () => import("./bookmarks-panel").then((mod) => mod.BookmarksPanel),
+    {
+        ssr: false,
+    },
+);
+
+const AnimeDetailModal = dynamic(
+    () => import("./anime-detail-modal").then((mod) => mod.AnimeDetailModal),
+    {
+        ssr: false,
+    },
+);
 
 export function BookmarkBar() {
-    const { bookmarks, togglePanel } = useBookmarkStore();
-    const count = bookmarks.length;
+    const count = useBookmarkStore((state) => state.bookmarks.length);
+    const isOpen = useBookmarkStore((state) => state.isOpen);
+    const selectedDetail = useBookmarkStore((state) => state.selectedDetail);
+    const togglePanel = useBookmarkStore((state) => state.togglePanel);
 
     return (
         <>
@@ -26,8 +41,8 @@ export function BookmarkBar() {
                 )}
             </button>
 
-            <BookmarksPanel />
-            <AnimeDetailModal />
+            {isOpen ? <BookmarksPanel /> : null}
+            {selectedDetail ? <AnimeDetailModal /> : null}
         </>
     );
 }

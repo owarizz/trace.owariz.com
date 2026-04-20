@@ -1,8 +1,16 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useState } from "react";
-import { MeRender } from "./me-card";
+import { MeCardSkeleton } from "./me-card/skeleton";
+
+const MeRender = dynamic(
+    () => import("./me-card/me-render").then((mod) => mod.MeRender),
+    {
+        loading: () => <MeCardSkeleton />,
+    },
+);
 
 export function StatusPanel() {
     const [isOpen, setIsOpen] = useState(false);

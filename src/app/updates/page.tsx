@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { getUpdatesFeed, UpdatesRender } from "@/features/updates";
+import { getUpdatesFeed } from "@/features/updates/server/github";
+import { UpdatesRender } from "@/features/updates/view/updates-render";
 
 export const metadata: Metadata = {
     title: "Trace Updates",

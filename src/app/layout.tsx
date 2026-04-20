@@ -4,7 +4,7 @@ import "../assets/globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
-import { APP_CONFIG } from "@/common/config";
+import { APP_CONFIG } from "@/common/config/site";
 
 export const viewport: Viewport = {
     themeColor: [
@@ -45,9 +45,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <html lang="th" className="h-full antialiased">
             <head>
                 <link rel="preconnect" href="https://api.trace.moe" />
-                <link rel="preconnect" href="https://graphql.anilist.co" />
                 <link rel="dns-prefetch" href="https://api.trace.moe" />
-                <link rel="dns-prefetch" href="https://graphql.anilist.co" />
             </head>
             <body className="min-h-full flex flex-col">
                 {children}

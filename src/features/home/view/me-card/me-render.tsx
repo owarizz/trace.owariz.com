@@ -8,7 +8,7 @@ import {
     User,
     Zap,
 } from "lucide-react";
-import { useMe } from "../../controller";
+import { useMe } from "../../controller/hook";
 import { MeCardError } from "./error";
 import { MeCardSkeleton } from "./skeleton";
 

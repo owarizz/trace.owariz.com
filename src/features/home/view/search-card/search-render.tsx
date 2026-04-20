@@ -1,17 +1,31 @@
 "use client";
 
 import { ArrowUp, Link, Scissors, Search, Upload, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import {
+    useCallback,
+    useEffect,
+    useEffectEvent,
+    useRef,
+    useState,
+} from "react";
 import { toast } from "sonner";
-import { useSearch } from "../../controller";
 import { useBookmarkStore } from "../../controller/bookmark-store";
+import { useSearch } from "../../controller/search-hook";
 import { RecentHistory } from "./recent-history";
-import { ResultList } from "./result-list";
+import { ResultListSkeleton } from "./result-list-skeleton";
 import { EmptyView, ErrorView, LoadingView } from "./status-views";
 import { UploadZone } from "./upload-zone";
 import { UrlForm } from "./url-form";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
+
+const ResultList = dynamic(
+    () => import("./result-list").then((mod) => mod.ResultList),
+    {
+        loading: () => <ResultListSkeleton />,
+    },
+);
 
 interface SearchRenderProps {
     initialUrl?: string;
@@ -38,7 +52,7 @@ export function SearchRender({ initialUrl }: SearchRenderProps) {
     const [preview, setPreview] = useState<string | null>(null);
     const [pendingUrlFocus, setPendingUrlFocus] = useState(false);
 
-    const { togglePanel: toggleBookmarks } = useBookmarkStore();
+    const toggleBookmarks = useBookmarkStore((state) => state.togglePanel);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const urlInputRef = useRef<HTMLInputElement>(null);
@@ -64,15 +78,13 @@ export function SearchRender({ initialUrl }: SearchRenderProps) {
         }
     }, [clearPreviewUrl]);
 
-    // ── Handlers (defined before useEffects that depend on them) ──────────
-
     const handleNewSearch = useCallback(() => {
         reset();
         resetLocalUi();
         window.history.replaceState(null, "", window.location.pathname);
         window.setTimeout(() => {
-            const el = dropZoneRef.current ?? urlModeRef.current;
-            el?.scrollIntoView({ behavior: "smooth", block: "center" });
+            const element = dropZoneRef.current ?? urlModeRef.current;
+            element?.scrollIntoView({ behavior: "smooth", block: "center" });
         }, 50);
     }, [reset, resetLocalUi]);
 
@@ -90,12 +102,14 @@ export function SearchRender({ initialUrl }: SearchRenderProps) {
                 toast.error("Unsupported file type. Use images or videos.");
                 return;
             }
+
             if (file.size > MAX_FILE_SIZE) {
                 toast.error(
                     `File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max is 25MB.`,
                 );
                 return;
             }
+
             clearPreviewUrl();
             if (file.type.startsWith("image/")) {
                 const objectUrl = URL.createObjectURL(file);
@@ -104,6 +118,7 @@ export function SearchRender({ initialUrl }: SearchRenderProps) {
             } else {
                 setPreview(null);
             }
+
             searchByFile(file, { cutBorders, anilistInfo: true });
         },
         [clearPreviewUrl, cutBorders, searchByFile],
@@ -124,10 +139,10 @@ export function SearchRender({ initialUrl }: SearchRenderProps) {
             event.preventDefault();
             const nextUrl = urlInput.trim();
             if (!nextUrl) return;
+
             clearPreviewUrl();
             setPreview(nextUrl);
             searchByUrl(nextUrl, { cutBorders, anilistInfo: true });
-            // Update browser URL for shareability via ?url=
             window.history.replaceState(
                 null,
                 "",
@@ -136,8 +151,6 @@ export function SearchRender({ initialUrl }: SearchRenderProps) {
         },
         [clearPreviewUrl, cutBorders, searchByUrl, urlInput],
     );
-
-    // ── Effects ───────────────────────────────────────────────────────────
 
     // Auto-search from ?url= query param (shareable links)
     // biome-ignore lint/correctness/useExhaustiveDependencies: fires once on mount only
@@ -151,7 +164,6 @@ export function SearchRender({ initialUrl }: SearchRenderProps) {
         }
     }, []);
 
-    // Focus URL input after switching to URL mode via keyboard shortcut
     useEffect(() => {
         if (pendingUrlFocus && mode === "url") {
             urlInputRef.current?.focus();
@@ -159,7 +171,6 @@ export function SearchRender({ initialUrl }: SearchRenderProps) {
         }
     }, [mode, pendingUrlFocus]);
 
-    // Scroll to results when they appear
     useEffect(() => {
         if ((data || error) && !loading && resultsRef.current) {
             resultsRef.current.scrollIntoView({
@@ -169,100 +180,100 @@ export function SearchRender({ initialUrl }: SearchRenderProps) {
         }
     }, [data, error, loading]);
 
-    // Global paste handler
-    useEffect(() => {
-        const handlePaste = (event: ClipboardEvent) => {
-            const items = event.clipboardData?.items;
-            if (!items) return;
-            for (const item of items) {
-                if (item.type.startsWith("image/")) {
-                    event.preventDefault();
-                    const file = item.getAsFile();
-                    if (file) handleFile(file);
-                    return;
-                }
-            }
-        };
-        window.addEventListener("paste", handlePaste);
-        return () => window.removeEventListener("paste", handlePaste);
-    }, [handleFile]);
+    const handleWindowPaste = useEffectEvent((event: ClipboardEvent) => {
+        const items = event.clipboardData?.items;
+        if (!items) return;
 
-    // Global drag-and-drop handler
+        for (const item of items) {
+            if (item.type.startsWith("image/")) {
+                event.preventDefault();
+                const file = item.getAsFile();
+                if (file) handleFile(file);
+                return;
+            }
+        }
+    });
+
     useEffect(() => {
-        const handleDragOver = (event: DragEvent) => {
-            event.preventDefault();
-            if (event.dataTransfer?.types.includes("Files")) {
-                setMode("upload");
-                setIsDragging(true);
-            }
-        };
-        const handleDragLeave = (event: DragEvent) => {
-            event.preventDefault();
-            if (
-                event.relatedTarget === null ||
-                event.clientX === 0 ||
-                event.clientY === 0
-            ) {
-                setIsDragging(false);
-            }
-        };
-        const handleDropGlobal = (event: DragEvent) => {
-            event.preventDefault();
+        window.addEventListener("paste", handleWindowPaste);
+        return () => window.removeEventListener("paste", handleWindowPaste);
+    }, [handleWindowPaste]);
+
+    const handleWindowDragOver = useEffectEvent((event: DragEvent) => {
+        event.preventDefault();
+        if (event.dataTransfer?.types.includes("Files")) {
+            setMode("upload");
+            setIsDragging(true);
+        }
+    });
+
+    const handleWindowDragLeave = useEffectEvent((event: DragEvent) => {
+        event.preventDefault();
+        if (
+            event.relatedTarget === null ||
+            event.clientX === 0 ||
+            event.clientY === 0
+        ) {
             setIsDragging(false);
-            const file = event.dataTransfer?.files?.[0];
-            if (file) handleFile(file);
-        };
-        window.addEventListener("dragover", handleDragOver);
-        window.addEventListener("dragleave", handleDragLeave);
-        window.addEventListener("drop", handleDropGlobal);
-        return () => {
-            window.removeEventListener("dragover", handleDragOver);
-            window.removeEventListener("dragleave", handleDragLeave);
-            window.removeEventListener("drop", handleDropGlobal);
-        };
-    }, [handleFile]);
+        }
+    });
 
-    // Keyboard shortcuts: "/" to URL search, "Escape" to reset
+    const handleWindowDrop = useEffectEvent((event: DragEvent) => {
+        event.preventDefault();
+        setIsDragging(false);
+        const file = event.dataTransfer?.files?.[0];
+        if (file) handleFile(file);
+    });
+
     useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            const tag = (event.target as HTMLElement).tagName;
-            const isInput =
-                tag === "INPUT" ||
-                tag === "TEXTAREA" ||
-                (event.target as HTMLElement).isContentEditable;
+        window.addEventListener("dragover", handleWindowDragOver);
+        window.addEventListener("dragleave", handleWindowDragLeave);
+        window.addEventListener("drop", handleWindowDrop);
 
-            if (event.key === "/" && !isInput && !data && !error && !loading) {
-                event.preventDefault();
-                setMode("url");
-                setPendingUrlFocus(true);
-            }
-
-            if (event.key === "Escape" && (data || error)) {
-                handleNewSearch();
-            }
-
-            if (
-                event.key.toLowerCase() === "b" &&
-                !isInput &&
-                !event.ctrlKey &&
-                !event.metaKey
-            ) {
-                event.preventDefault();
-                toggleBookmarks();
-            }
+        return () => {
+            window.removeEventListener("dragover", handleWindowDragOver);
+            window.removeEventListener("dragleave", handleWindowDragLeave);
+            window.removeEventListener("drop", handleWindowDrop);
         };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [data, error, loading, handleNewSearch, toggleBookmarks]);
+    }, [handleWindowDragLeave, handleWindowDragOver, handleWindowDrop]);
 
-    // Cleanup object URL on unmount
+    const handleWindowKeyDown = useEffectEvent((event: KeyboardEvent) => {
+        const target = event.target as HTMLElement;
+        const tag = target.tagName;
+        const isInput =
+            tag === "INPUT" || tag === "TEXTAREA" || target.isContentEditable;
+
+        if (event.key === "/" && !isInput && !data && !error && !loading) {
+            event.preventDefault();
+            setMode("url");
+            setPendingUrlFocus(true);
+        }
+
+        if (event.key === "Escape" && (data || error)) {
+            handleNewSearch();
+        }
+
+        if (
+            event.key.toLowerCase() === "b" &&
+            !isInput &&
+            !event.ctrlKey &&
+            !event.metaKey
+        ) {
+            event.preventDefault();
+            toggleBookmarks();
+        }
+    });
+
+    useEffect(() => {
+        window.addEventListener("keydown", handleWindowKeyDown);
+        return () => window.removeEventListener("keydown", handleWindowKeyDown);
+    }, [handleWindowKeyDown]);
+
     useEffect(() => {
         return () => {
             clearPreviewUrl();
         };
     }, [clearPreviewUrl]);
-
-    // ── Render ────────────────────────────────────────────────────────────
 
     const hasResults = Boolean(data && data.result.length > 0);
     const showUploadZone = !loading && !hasResults && !error;

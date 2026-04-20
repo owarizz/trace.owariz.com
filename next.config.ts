@@ -15,6 +15,9 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+    experimental: {
+        optimizePackageImports: ["date-fns", "lucide-react"],
+    },
     async headers() {
         return [
             {

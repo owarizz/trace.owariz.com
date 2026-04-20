@@ -6,7 +6,6 @@ import {
     Check,
     Clock,
     Copy,
-    ExternalLink,
     Info,
     Percent,
     Play,
@@ -17,41 +16,18 @@ import {
 import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { AnilistInfo, SearchResult } from "../../controller";
+import {
+    createDetailStateFromSearch,
+    formatSceneTime,
+    getAnimeId,
+    getAnimeInfo,
+    getAnimeTitle,
+} from "../../controller/anime-scene";
 import {
     makeBookmarkId,
     useBookmarkStore,
 } from "../../controller/bookmark-store";
-
-function formatTime(seconds: number) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-
-    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-}
-
-function isAnilistInfo(
-    anilist: SearchResult["anilist"],
-): anilist is AnilistInfo {
-    return typeof anilist !== "number";
-}
-
-function getAnimeTitle(anilist: SearchResult["anilist"]) {
-    if (!isAnilistInfo(anilist)) {
-        return `AniList #${anilist}`;
-    }
-
-    return (
-        anilist.title.english ??
-        anilist.title.romaji ??
-        anilist.title.native ??
-        `AniList #${anilist.id}`
-    );
-}
-
-function getAnilistId(anilist: SearchResult["anilist"]) {
-    return isAnilistInfo(anilist) ? anilist.id : anilist;
-}
+import type { SearchResult } from "../../controller/interface";
 
 function getSimilarityColor(similarity: number) {
     if (similarity >= 0.9) {
@@ -107,14 +83,17 @@ export function ResultCard({
     const [showVideo, setShowVideo] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
     const [isCopied, setIsCopied] = useState(false);
-    const title = getAnimeTitle(result.anilist);
-    const anilistId = getAnilistId(result.anilist);
+    const animeInfo = getAnimeInfo(result.anilist);
+    const title = getAnimeTitle(animeInfo, getAnimeId(result.anilist));
     const similarityPercent = Math.round(result.similarity * 100);
 
     const bookmarkId = makeBookmarkId(result);
-    const { isBookmarked, addBookmark, removeBookmark, openDetail } =
-        useBookmarkStore();
-    const bookmarked = isBookmarked(bookmarkId);
+    const addBookmark = useBookmarkStore((state) => state.addBookmark);
+    const removeBookmark = useBookmarkStore((state) => state.removeBookmark);
+    const openDetail = useBookmarkStore((state) => state.openDetail);
+    const bookmarked = useBookmarkStore((state) =>
+        state.bookmarks.some((item) => item.id === bookmarkId),
+    );
 
     const handleBookmark = () => {
         if (bookmarked) {
@@ -129,7 +108,8 @@ export function ResultCard({
         const shareText = [
             `Found: ${title}${result.episode ? ` [Ep. ${result.episode}]` : ""}`,
             `Confidence: ${(result.similarity * 100).toFixed(1)}%`,
-            `Match: https://anilist.co/anime/${anilistId}`,
+            `Scene: ${formatSceneTime(result.from)} - ${formatSceneTime(result.to)}`,
+            result.filename ? `Source: ${result.filename}` : null,
         ].join("\n");
 
         try {
@@ -142,9 +122,7 @@ export function ResultCard({
         }
     };
 
-    const nativeTitle = isAnilistInfo(result.anilist)
-        ? result.anilist.title.native
-        : null;
+    const nativeTitle = animeInfo?.title.native ?? null;
 
     return (
         <div
@@ -257,22 +235,13 @@ export function ResultCard({
                             )}
                             <span className="flex items-center gap-1 text-[11px] text-(--text-muted)">
                                 <Clock className="size-3" />
-                                {formatTime(result.from)} -{" "}
-                                {formatTime(result.to)}
+                                {formatSceneTime(result.from)} -{" "}
+                                {formatSceneTime(result.to)}
                             </span>
                         </div>
                     </div>
 
                     <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                        <a
-                            href={`https://anilist.co/anime/${anilistId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
-                        >
-                            <ExternalLink className="size-3" />
-                            AniList
-                        </a>
                         {!showVideo && (
                             <button
                                 type="button"
@@ -285,7 +254,9 @@ export function ResultCard({
                         )}
                         <button
                             type="button"
-                            onClick={() => openDetail(anilistId)}
+                            onClick={() =>
+                                openDetail(createDetailStateFromSearch(result))
+                            }
                             className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
                         >
                             <Info className="size-3" />
