@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import { Bookmark, Clock, Info } from "lucide-react";
+import { Bookmark, Clock } from "lucide-react";
 import Image from "next/image";
 import { formatSceneTime } from "../controller/anime-scene";
 import { useBookmarkStore } from "../controller/bookmark-store";
@@ -29,7 +29,7 @@ export function SavedScenesSection() {
                 <button
                     type="button"
                     onClick={togglePanel}
-                    className="text-[10px] text-(--text-faint) transition-colors hover:text-(--accent)"
+                    className="inline-flex items-center gap-1 rounded-full border border-(--border-subtle) bg-(--bg-glass) px-2.5 py-1 text-[10px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:text-(--accent)"
                 >
                     View all
                 </button>
@@ -101,10 +101,6 @@ export function SavedScenesSection() {
                                 </span>
                             </div>
 
-                            <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-elevated) px-2.5 py-1 text-[11px] font-medium text-(--text-muted) transition-all group-hover:border-(--border-default) group-hover:text-(--text-secondary)">
-                                <Info className="size-3" />
-                                Open saved scene
-                            </div>
                         </div>
                     </button>
                 ))}

@@ -6,7 +6,6 @@ import {
     Sparkles,
     Star,
     Tv,
-    Users,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -353,21 +352,14 @@ export function SeasonAtlasRender({ archive, feed }: SeasonAtlasRenderProps) {
                                                     ))}
                                             </div>
 
-                                            <div className="flex items-center justify-between pt-1">
-                                                <div className="inline-flex items-center gap-1.5 text-[11px] text-(--text-faint)">
-                                                    <Users className="size-3" />
-                                                    {formatMemberCount(
-                                                        anime.members,
-                                                    )}{" "}
-                                                    followers
-                                                </div>
+                                            <div className="flex justify-end pt-1">
                                                 <a
                                                     href={anime.url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="inline-flex items-center gap-1.5 rounded-full border border-(--border-subtle) bg-(--bg-elevated) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:text-(--text-secondary)"
                                                 >
-                                                    Open
+                                                    Open on MAL
                                                     <ExternalLink className="size-3" />
                                                 </a>
                                             </div>

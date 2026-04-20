@@ -263,8 +263,7 @@ export function AiringSection({
                         Recommended This Season
                     </p>
                     <p className="mt-1 text-[11px] text-(--text-faint)">
-                        Powered by a seasonal anime catalog, with badges from
-                        your bookmarks and searches.
+                        Badges reflect your bookmarks and search history.
                     </p>
                 </div>
                 <div className="h-px flex-1 bg-(--border-subtle)" />
@@ -286,6 +285,7 @@ export function AiringSection({
 
             {displayAnime.length > 0 && (
                 <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-(--bg-primary) to-transparent" />
                     <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide scroll-smooth">
                         {displayAnime.map((item, index) => (
                             <AiringAnimeCard

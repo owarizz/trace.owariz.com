@@ -135,11 +135,11 @@ function CommitRow({ commit }: { commit: UpdatesCommit }) {
                 {rest}
             </span>
 
-            <span className="shrink-0 font-mono text-[10px] text-(--text-faint) tabular-nums">
+            <span className="hidden shrink-0 font-mono text-[10px] text-(--text-faint) tabular-nums sm:inline">
                 {commit.sha}
             </span>
 
-            <span className="shrink-0 text-[11px] text-(--text-faint) tabular-nums w-20 text-right">
+            <span className="shrink-0 text-[11px] text-(--text-faint) tabular-nums sm:w-20 text-right">
                 {time}
             </span>
 
