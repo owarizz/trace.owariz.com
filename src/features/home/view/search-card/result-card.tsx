@@ -1,10 +1,13 @@
 "use client";
 
 import {
+    Bookmark,
+    BookmarkCheck,
     Check,
     Clock,
     Copy,
     ExternalLink,
+    Info,
     Percent,
     Play,
     Star,
@@ -15,6 +18,10 @@ import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { AnilistInfo, SearchResult } from "../../controller";
+import {
+    makeBookmarkId,
+    useBookmarkStore,
+} from "../../controller/bookmark-store";
 
 function formatTime(seconds: number) {
     const minutes = Math.floor(seconds / 60);
@@ -103,6 +110,20 @@ export function ResultCard({
     const title = getAnimeTitle(result.anilist);
     const anilistId = getAnilistId(result.anilist);
     const similarityPercent = Math.round(result.similarity * 100);
+
+    const bookmarkId = makeBookmarkId(result);
+    const { isBookmarked, addBookmark, removeBookmark, openDetail } =
+        useBookmarkStore();
+    const bookmarked = isBookmarked(bookmarkId);
+
+    const handleBookmark = () => {
+        if (bookmarked) {
+            removeBookmark(bookmarkId);
+        } else {
+            addBookmark(result);
+            toast.success("Scene bookmarked!");
+        }
+    };
 
     const handleCopy = async () => {
         const shareText = [
@@ -242,7 +263,7 @@ export function ResultCard({
                         </div>
                     </div>
 
-                    <div className="mt-3 flex items-center gap-2">
+                    <div className="mt-3 flex flex-wrap items-center gap-1.5">
                         <a
                             href={`https://anilist.co/anime/${anilistId}`}
                             target="_blank"
@@ -264,16 +285,47 @@ export function ResultCard({
                         )}
                         <button
                             type="button"
-                            onClick={handleCopy}
-                            className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
+                            onClick={() => openDetail(anilistId)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
                         >
-                            {isCopied ? (
-                                <Check className="size-3 text-emerald-500" />
-                            ) : (
-                                <Copy className="size-3" />
-                            )}
-                            {isCopied ? "Copied" : "Share"}
+                            <Info className="size-3" />
+                            Details
                         </button>
+                        <div className="ml-auto flex items-center gap-1.5">
+                            <button
+                                type="button"
+                                onClick={handleBookmark}
+                                className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-all active:scale-95 ${
+                                    bookmarked
+                                        ? "border-(--accent)/30 bg-(--accent-muted) text-(--accent) hover:bg-(--accent-muted)"
+                                        : "border-(--border-subtle) bg-(--bg-glass) text-(--text-muted) hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary)"
+                                }`}
+                                aria-label={
+                                    bookmarked
+                                        ? "Remove bookmark"
+                                        : "Bookmark scene"
+                                }
+                            >
+                                {bookmarked ? (
+                                    <BookmarkCheck className="size-3" />
+                                ) : (
+                                    <Bookmark className="size-3" />
+                                )}
+                                {bookmarked ? "Saved" : "Save"}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleCopy}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-(--border-subtle) bg-(--bg-glass) px-3 py-1.5 text-[11px] font-medium text-(--text-muted) transition-all hover:border-(--border-default) hover:bg-(--bg-glass-hover) hover:text-(--text-secondary) active:scale-95"
+                            >
+                                {isCopied ? (
+                                    <Check className="size-3 text-emerald-500" />
+                                ) : (
+                                    <Copy className="size-3" />
+                                )}
+                                {isCopied ? "Copied" : "Share"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

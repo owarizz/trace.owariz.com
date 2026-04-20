@@ -4,6 +4,7 @@ import { ArrowUp, Link, Scissors, Search, Upload, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useSearch } from "../../controller";
+import { useBookmarkStore } from "../../controller/bookmark-store";
 import { RecentHistory } from "./recent-history";
 import { ResultList } from "./result-list";
 import { EmptyView, ErrorView, LoadingView } from "./status-views";
@@ -36,6 +37,8 @@ export function SearchRender({ initialUrl }: SearchRenderProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [preview, setPreview] = useState<string | null>(null);
     const [pendingUrlFocus, setPendingUrlFocus] = useState(false);
+
+    const { togglePanel: toggleBookmarks } = useBookmarkStore();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const urlInputRef = useRef<HTMLInputElement>(null);
@@ -237,10 +240,20 @@ export function SearchRender({ initialUrl }: SearchRenderProps) {
             if (event.key === "Escape" && (data || error)) {
                 handleNewSearch();
             }
+
+            if (
+                event.key.toLowerCase() === "b" &&
+                !isInput &&
+                !event.ctrlKey &&
+                !event.metaKey
+            ) {
+                event.preventDefault();
+                toggleBookmarks();
+            }
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [data, error, loading, handleNewSearch]);
+    }, [data, error, loading, handleNewSearch, toggleBookmarks]);
 
     // Cleanup object URL on unmount
     useEffect(() => {

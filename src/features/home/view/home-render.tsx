@@ -3,6 +3,7 @@ import Link from "next/link";
 import { APP_CONFIG } from "@/common/config";
 import type { AiringAnime } from "@/features/airing/server/anilist";
 import { AiringSection } from "@/features/airing/view/airing-section";
+import { BookmarkBar } from "./bookmark-bar";
 import { SearchRender } from "./search-card";
 import { StatusPanel } from "./status-panel";
 
@@ -50,6 +51,7 @@ export function HomeRender({ initialUrl, airingAnime = [] }: HomeRenderProps) {
                             >
                                 Updates
                             </Link>
+                            <BookmarkBar />
                             <a
                                 href={APP_CONFIG.github.url}
                                 target="_blank"
