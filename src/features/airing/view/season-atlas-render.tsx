@@ -145,11 +145,11 @@ export function SeasonAtlasRender({ archive, feed }: SeasonAtlasRenderProps) {
                         </span>
                     </div>
 
-                    <div className="overflow-hidden rounded-xl border border-(--border-subtle)">
+                    <div className="max-h-[272px] overflow-y-auto overflow-x-hidden rounded-xl border border-(--border-subtle)">
                         {archive.map((entry, i) => (
                             <div
                                 key={entry.year}
-                                className={`flex items-center gap-3 px-4 py-2.5 ${i < archive.length - 1 ? "border-b border-(--border-subtle)" : ""}`}
+                                className={`flex items-center gap-3 px-4 py-2.5 ${entry.year === feed.selection.year ? "bg-(--bg-glass)" : ""} ${i < archive.length - 1 ? "border-b border-(--border-subtle)" : ""}`}
                             >
                                 <span className="w-10 shrink-0 text-sm font-semibold text-(--text-secondary)">
                                     {entry.year}

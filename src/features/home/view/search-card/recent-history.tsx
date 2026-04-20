@@ -7,9 +7,9 @@ import { useBookmarkStore } from "../../controller/bookmark-store";
 import type { HistoryItem } from "../../controller/history-hook";
 
 function similarityBadgeClass(similarity: number) {
-    if (similarity >= 0.87) return "bg-emerald-400/15 text-emerald-300 border-emerald-400/20";
-    if (similarity >= 0.70) return "bg-amber-400/15 text-amber-300 border-amber-400/20";
-    return "bg-rose-400/15 text-rose-300 border-rose-400/20";
+    if (similarity >= 0.87) return "bg-black/70 text-emerald-300 border-emerald-400/40";
+    if (similarity >= 0.70) return "bg-black/70 text-amber-300 border-amber-400/40";
+    return "bg-black/70 text-rose-300 border-rose-400/40";
 }
 
 interface RecentHistoryProps {
